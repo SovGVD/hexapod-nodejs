@@ -1,10 +1,10 @@
 # Hexapod NodeJS
 
 ## Hardware
-SBC: any with i2c and nodejs
-Servo driver: PCA9685 based
-Servos: MG996 (or any other)
-Frame: 18DOF (3 servos to 6 legs)
+ - SBC: any with i2c and nodejs
+ - Servo driver: PCA9685 based
+ - Servos: MG996 (or any other)
+ - Frame: 18DOF (3 servos to 6 legs)
 
 ## Software
 
@@ -12,8 +12,6 @@ Frame: 18DOF (3 servos to 6 legs)
 
 (to be tested later in code and on real hexapod model, this is just a calculations and can be completely wrong!)
 
-```
-```
 
 ### Leg
 
@@ -21,7 +19,7 @@ Top view (initial state)
 ```
                |<-- L-Lc -->|
         |<------- L  ------>|
-               |            |
+        |      |            |
         |      |            |
  -------0======0===0========X
   robot |\
@@ -42,7 +40,7 @@ Z---> +X
                   ___---        ^
             __0--0              | -- D
          ---                    v
- -------0                     -----
+ -------0-  -  -  -  -  -  -  -----
   robot |\
    body | \
         |  \
@@ -113,13 +111,15 @@ L = sqrt((x1-x0)^2 + (y1-y0)^2)
 ```
 
 ```
-D = sqrt(y1-y0)
+D = y1-y0
 ```
 
 
 TODO:
- 1. check if `(x1,y1,z1)` in the sphere of Leg(id), or easy: `(x1,y1)` inside circle and `z1` less than `(Lf+Lt)` (looks dangerous, maybe just `Lt`)
+ 1. check if `(x1,y1,z1)` in the sphere of Leg(id)
  2. check servos limits (or it can be permanenlty damaged)
 
 
 ### Body
+
+### Gait
