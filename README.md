@@ -97,12 +97,12 @@ AngleCoxa = arcsin ( --- )
                       L
 ```
 
-Lc = length of coxa (const)
-Lf = length of femur (const)
-Lt = length of tibia (const)
-L  = length of the leg in top view (should be calculated from given points)
-H  = height of the robot from ground to coxa (or somewhere around)
-D  = distance of movment from initial state of leg (90 agains body)
+ - `Lc` = length of coxa (const)
+ - `Lf` = length of femur (const)
+ - `Lt` = length of tibia (const)
+ - `L`  = length of the leg in top view (should be calculated from given points)
+ - `H`  = height of the robot from ground to coxa (or somewhere around)
+ - `D`  = distance of movment from initial state of leg (90 agains body)
 
 Distance between AngleFemur point and Ground point of the leg is `H^2 + (L - Lc)^2`
 
