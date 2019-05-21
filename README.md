@@ -121,23 +121,23 @@ TODO:
 
 
 ```
-     Leg(0)       FRONT       Leg(1)
+   Leg(0) [LF]    FRONT    [RF] Leg(1)
          ---0===============0---
             ||             ||
             ||      ^Y     ||
-     Leg(2) ||      |  X   || Leg(3)
+ Leg(2) [LM]||      |  X   ||[RM] Leg(3)
          ---0       Z-->    0---
             || (0,0,D)     ||
             ||             ||
             ||             ||
          ---0===============0---
-     Leg(4)                   Leg(5)
+   Leg(4) [LB]   BOTTOM    [RB] Leg(5)
 ```
 Body absolute position:
 
-`Xnew = Xold + deltaX*cos(r) - deltaY*sin(r)`
+`Xnew = Xold + deltaX*cos(yaw) - deltaY*sin(yaw)`
 
-`Ynew = Yold + deltaX*sin(r) + deltaY*cos(r)`
+`Ynew = Yold + deltaX*sin(yaw) + deltaY*cos(yaw)`
 
  - `r` - angle rotation around `Z` axis
  - `deltaX` - move right(+)/left(-)
@@ -147,14 +147,65 @@ Body absolute position:
 
 Should be apply to all XY points of leg:
 
-`Xnew = Xold*cos(r) - Yold*sin(r)`
+`XLegNew = XLeg*cos(yaw) - YLeg*sin(yaw))`
 
-`Ynew = Xold*sin(r) + Yold*cos(r)`
+`YLegNew = XLeg*sin(yaw) + YLeg*cos(yaw)`
 
 
 ## Gait
 Some good explanation of [common used gaits](https://hexyrobot.wordpress.com/2015/11/20/common-walking-gaits-for-hexapods/)
 
+Gait is the sequence of movements that should be finished (e.g. check leg real position on the ground using sensors or calculate based on servo speed) before move to next step. 
+In case of stop, gait should be interrupted and legs returned to initial state (after some period of time).
+
+Sequence of one-left+two-right, than two-left+one-right.
+ - `L` or `R` - mean left ot right side of the hexapod
+ - `F`, `M`, `B` - means Front, Middle or Back leg
+ - `up` - move leg up (air)
+ - `down` - move leg down (ground)
+ - `m0` - leg in the middle
+ - `m+` - leg move forward
+ - `m-` - leg move backward
+ - `m0/m+` - move to middle position or move forward, depends on size, speed, frame settings
+
+| Leg | step1 | step2 | step3 | step4 | step5 | step6 |
+|-----|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|
+| LF  |   up  | m0/m+ |  down |       |   m-  |       |
+| LM  |       |   m-  |       |   up  | m0/m+ |  down |
+| LB  |   up  | m0/m+ |  down |       |   m-  |       |
+| RF  |       |   m-  |       |   up  | m0/m+ |  down |
+| RM  |   up  | m0/m+ |  down |       |   m-  |       |
+| RB  |       |   m-  |       |   up  | m0/m+ |  down |
+
+Leg in the middle
+```
+||
+||
+ 0----
+||
+||
+
+```
+Leg forward
+```
+||  /
+|| /
+ 0
+||
+||
+
+```
+
+Leg backward
+```
+||
+||
+ 0
+|| \
+||  \
+
+```
+
 ### Smooth movements
-TODO (Bezier curves? Or easy?)
+TODO (Bezier curves? Or easy?), combine steps, etc
 
