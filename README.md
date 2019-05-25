@@ -90,7 +90,7 @@ AngleTibia angle 0...180 deg
 AngleFemur = arccos ( ---------------------------------- ) - ---- + arctan( -------- )
                        2 * Lf * sqrt(D^2 + (L - Lc)^2)         2               D
 ```
-AngleFemur angle -90...90 deg
+AngleFemur angle 0...90 deg
 
 
 ```

@@ -1,0 +1,309 @@
+<html>
+<head>
+	<title>Hexapod</title>
+		<style>
+			line {
+				stroke-width: 2px;
+				stroke: black;
+			}
+			#hexapod_body {
+				fill: green;
+				stroke: black;
+				stroke-width: 2px;
+			}
+
+			#hexapod_leg_LF_C { stroke: rgba(255,0,0,1); }
+			#hexapod_leg_LF_F { stroke: rgba(255,0,128,1); }
+			#hexapod_leg_LF_T { stroke: rgba(255,0,0,1); }
+
+			#hexapod_leg_LM_C { stroke: rgba(255,0,0,1); }
+			#hexapod_leg_LM_F { stroke: rgba(255,0,255,1); }
+			#hexapod_leg_LM_T { stroke: rgba(255,0,0,1); }
+			
+			#hexapod_leg_LB_C { stroke: rgba(255,0,0,1); }
+			#hexapod_leg_LB_F { stroke: rgba(255,0,255,0.7); }
+			#hexapod_leg_LB_T { stroke: rgba(255,0,0,1); }
+			
+
+			#hexapod_leg_RF_C { stroke: rgba(0,255,0,1); }
+			#hexapod_leg_RF_F { stroke: rgba(0,255,255,1); }
+			#hexapod_leg_RF_T { stroke: rgba(0,255,0,1); }
+
+			#hexapod_leg_RM_C { stroke: rgba(0,255,0,1); }
+			#hexapod_leg_RM_F { stroke: rgba(0,255,255,1); }
+			#hexapod_leg_RM_T { stroke: rgba(0,255,0,1); }
+			
+			#hexapod_leg_RB_C { stroke: rgba(0,255,0,1); }
+			#hexapod_leg_RB_F { stroke: rgba(0,255,255,1); }
+			#hexapod_leg_RB_T { stroke: rgba(0,255,0,1); }
+			
+
+	</style>
+</head>
+<body>
+<svg width="600" height="600" id="svgimg">
+	<g id="hexapod" transform="translate(300,300) scale(1)">
+		<polygon points="0,0 1,1 2,2 3,3 4,4 5,5" id="hexapod_body" />
+		
+		<line x1="0" y1="0" x2="0" y2="0" id="hexapod_leg_LF_C" />
+		<line x1="0" y1="0" x2="0" y2="0" id="hexapod_leg_LF_F" />
+		<line x1="0" y1="0" x2="0" y2="0" id="hexapod_leg_LF_T" />
+		
+		<line x1="0" y1="0" x2="0" y2="0" id="hexapod_leg_LM_C" />
+		<line x1="0" y1="0" x2="0" y2="0" id="hexapod_leg_LM_F" />
+		<line x1="0" y1="0" x2="0" y2="0" id="hexapod_leg_LM_T" />
+		
+		<line x1="0" y1="0" x2="0" y2="0" id="hexapod_leg_LB_C" />
+		<line x1="0" y1="0" x2="0" y2="0" id="hexapod_leg_LB_F" />
+		<line x1="0" y1="0" x2="0" y2="0" id="hexapod_leg_LB_T" />
+		
+		<line x1="0" y1="0" x2="0" y2="0" id="hexapod_leg_RF_C" />
+		<line x1="0" y1="0" x2="0" y2="0" id="hexapod_leg_RF_F" />
+		<line x1="0" y1="0" x2="0" y2="0" id="hexapod_leg_RF_T" />
+		
+		<line x1="0" y1="0" x2="0" y2="0" id="hexapod_leg_RM_C" />
+		<line x1="0" y1="0" x2="0" y2="0" id="hexapod_leg_RM_F" />
+		<line x1="0" y1="0" x2="0" y2="0" id="hexapod_leg_RM_T" />
+		
+		<line x1="0" y1="0" x2="0" y2="0" id="hexapod_leg_RB_C" />
+		<line x1="0" y1="0" x2="0" y2="0" id="hexapod_leg_RB_F" />
+		<line x1="0" y1="0" x2="0" y2="0" id="hexapod_leg_RB_T" />
+	</g>
+</svg>
+<script>
+	function G(id) {
+		return document.getElementById(id);
+	}
+	var hexapod_image_objects = {
+		svgimg: G('svgimg'),
+		body_legs: ["LF", "RF", "RM", "RB", "LB", "LM"],
+		body: G('hexapod_body'),
+		leg: {
+			LF: {
+				C: G('hexapod_leg_LF_C'),
+				F: G('hexapod_leg_LF_F'),
+				T: G('hexapod_leg_LF_T'),
+			},
+			LM: {
+				C: G('hexapod_leg_LM_C'),
+				F: G('hexapod_leg_LM_F'),
+				T: G('hexapod_leg_LM_T'),
+			},
+			LB: {
+				C: G('hexapod_leg_LB_C'),
+				F: G('hexapod_leg_LB_F'),
+				T: G('hexapod_leg_LB_T'),
+			},
+			RF: {
+				C: G('hexapod_leg_RF_C'),
+				F: G('hexapod_leg_RF_F'),
+				T: G('hexapod_leg_RF_T'),
+			},
+			RM: {
+				C: G('hexapod_leg_RM_C'),
+				F: G('hexapod_leg_RM_F'),
+				T: G('hexapod_leg_RM_T'),
+			},
+			RB: {
+				C: G('hexapod_leg_RB_C'),
+				F: G('hexapod_leg_RB_F'),
+				T: G('hexapod_leg_RB_T'),
+			},
+
+		}
+	};
+	// hexapod sizes
+	var hexapod = {};
+	hexapod.legs = ["LF", "LM", "LB", "RF", "RM", "RB"];
+	hexapod.config = {
+			body: {
+				x: 0, y: 0, z: 3,	// z - distance from ground
+				AngX: 0, AngY: 0, AngZ: 0,
+				LF:  { x: -10, y:  15, z: 0 },
+				LM:  { x: -10, y:   0, z: 0 },
+				LB:  { x: -10, y: -15, z: 0 },
+				RF:  { x:  10, y:  15, z: 0 },
+				RM:  { x:  10, y:   0, z: 0 },
+				RB:  { x:  10, y: -15, z: 0 }
+			},
+			leg: {
+				LF: { AngC: 0, Lc: 3, Lf: 3, Lt: 7, L: { min: 4, max: 12, default: 12 } },	// TODO min and max!!! AngF (0...90)
+				LM: { AngC: 0, Lc: 3, Lf: 3, Lt: 7, L: { min: 4, max: 12, default: 12 } },
+				LB: { AngC: 0, Lc: 3, Lf: 3, Lt: 7, L: { min: 4, max: 12, default: 12 } },
+				RF: { AngC: 0, Lc: 3, Lf: 3, Lt: 7, L: { min: 4, max: 12, default: 12 } },
+				RM: { AngC: 0, Lc: 3, Lf: 3, Lt: 7, L: { min: 4, max: 12, default: 12 } },
+				RB: { AngC: 0, Lc: 3, Lf: 3, Lt: 7, L: { min: 4, max: 12, default: 12 } }
+			},
+		};
+	hexapod.const = {
+		leg: {
+			LF: { Lf2: false, Lt2: false, LtLf: false },
+			LM: { Lf2: false, Lt2: false, LtLf: false },
+			LB: { Lf2: false, Lt2: false, LtLf: false },
+			RF: { Lf2: false, Lt2: false, LtLf: false },
+			RM: { Lf2: false, Lt2: false, LtLf: false },
+			RB: { Lf2: false, Lt2: false, LtLf: false }
+		}
+	},
+	hexapod.state = {
+			body: {
+				x: 0, y: 0, z: 0, 
+				AngX: 0, AngY: 0, AngZ: 0,
+				LF:  { x: -10, y:  15, z: 0 },	// TODO, based on body xyz and angles
+				LM:  { x: -10, y:   0, z: 0 },
+				LB:  { x: -10, y: -15, z: 0 },
+				RF:  { x:  10, y:  15, z: 0 },
+				RM:  { x:  10, y:   0, z: 0 },
+				RB:  { x:  10, y: -15, z: 0 }
+			},
+			leg: {
+				LF: { AngC: false, AngF: false, AngT: false, x: false, y:false, z: false, L: false },
+				LM: { AngC: false, AngF: false, AngT: false, x: false, y:false, z: false, L: false },
+				LB: { AngC: false, AngF: false, AngT: false, x: false, y:false, z: false, L: false },
+				RF: { AngC: false, AngF: false, AngT: false, x: false, y:false, z: false, L: false },
+				RM: { AngC: false, AngF: false, AngT: false, x: false, y:false, z: false, L: false },
+				RB: { AngC: false, AngF: false, AngT: false, x: false, y:false, z: false, L: false }
+			}
+		};
+	function legAng (ID) {
+		hexapod.state.leg[ID].L = Math.sqrt(Math.pow(hexapod.state.leg[ID].x - hexapod.state.body[ID].x, 2) + Math.pow(hexapod.state.leg[ID].y - hexapod.state.body[ID].y, 2));
+
+		/*
+		                      y1-y0
+		AngleCoxa = arcsin ( ------- )
+								L
+		*/
+		var tmp = Math.atan2((hexapod.config.body[ID].y - hexapod.config.body.y), (hexapod.config.body[ID].x - hexapod.config.body.x));
+		hexapod.state.leg[ID].AngC = _rad2deg(Math.atan2((hexapod.state.body[ID].y - hexapod.state.body.y), (hexapod.state.body[ID].x - hexapod.state.body.x)) - tmp);
+
+		/*
+								   Lf^2 + (D^2 + (L - Lc)^2) - Lt^2       PI             L - Lc
+			AngleFemur = arccos ( ---------------------------------- ) - ---- + arctan( -------- )
+								   2 * Lf * sqrt(D^2 + (L - Lc)^2)         2               D
+		*/
+		var tmp = Math.pow(hexapod.state.body.z, 2) + Math.pow( hexapod.state.leg[ID].L - hexapod.config.leg[ID].Lc, 2);
+		hexapod.state.leg[ID].AngF = _rad2deg(Math.acos( (hexapod.const.leg[ID].Lf2 + tmp - hexapod.const.leg[ID].Lt2) / (2 * hexapod.config.leg[ID].Lf * Math.sqrt(tmp) ) ) - Math.PI/2 + Math.atan((hexapod.state.leg[ID].L - hexapod.config.leg[ID].Lc) / hexapod.state.body.z));
+
+		/*
+							   Lt^2 + Lf^2 - (D^2 + (L - Lc)^2)
+		AngleTibia = arccos ( --------------------------------- )
+										 2 * Lt * Lf
+		*/
+		hexapod.state.leg[ID].AngT = _rad2deg(Math.acos((hexapod.const.leg[ID].Lt2 + hexapod.const.leg[ID].Lf2 - tmp) / (2 * hexapod.const.leg[ID].LtLf)));
+	}
+	
+	// TODO 0...360 only!
+	
+	function _degNorm(deg) {
+		while (deg > 360 || deg < 0) {
+			if (deg < 0) deg += 360;
+			if (deg > 360) deg -= 360;
+		}
+		return deg;
+	}
+	function _deg2rad(deg) {
+		return Math.PI/180*deg;
+	}
+
+	function _rad2deg(rad) {
+		return _degNorm(180/Math.PI*rad);
+	}
+	
+	function initBody() {
+		// TODO, all other calcs
+		hexapod.state.body.x = parseFloat(hexapod.config.body.x);
+		hexapod.state.body.y = parseFloat(hexapod.config.body.y);
+		hexapod.state.body.z = parseFloat(hexapod.config.body.z);
+	}
+	
+	function initLeg(ID) {
+		// init leg XYZ based on init AngC and default length od leg
+		hexapod.state.leg[ID].z = -hexapod.state.body.z;	// init leg D from ground;
+		var tmp = _rad2deg(Math.atan2((hexapod.config.body[ID].y - hexapod.config.body.y), (hexapod.config.body[ID].x - hexapod.config.body.x)));
+		hexapod.state.leg[ID].x = Math.sin(_deg2rad(hexapod.config.leg[ID].AngC+tmp)) * hexapod.config.leg[ID].L.default + hexapod.config.body[ID].x;
+		hexapod.state.leg[ID].y = Math.cos(_deg2rad(hexapod.config.leg[ID].AngC+tmp)) * hexapod.config.leg[ID].L.default + hexapod.config.body[ID].y;
+	}
+	
+	function initState() {
+		initBody();
+		for (var i = 0; i < hexapod.legs.length; i++) {
+			initLeg(hexapod.legs[i]);
+		}
+	}
+	
+	function initConst() {
+		for (var i = 0; i < hexapod.legs.length; i++) {
+			console.log("initConst", hexapod.legs[i]);
+			hexapod.const.leg[hexapod.legs[i]].Lf2 = Math.pow(hexapod.config.leg[hexapod.legs[i]].Lf, 2);
+			hexapod.const.leg[hexapod.legs[i]].Lt2 = Math.pow(hexapod.config.leg[hexapod.legs[i]].Lt, 2);
+			hexapod.const.leg[hexapod.legs[i]].LtLf = hexapod.config.leg[hexapod.legs[i]].Lt * hexapod.config.leg[hexapod.legs[i]].Lf;
+		}
+	}
+	
+	function initHexa() {
+		initConst();
+		initState();
+		update();
+		updateImage();
+	}
+	
+	function updateBody() {
+		// TODO!!!
+		// And don't forgot about body angle!
+	}
+
+	function updateLeg() {
+		for (var i = 0; i < hexapod.legs.length; i++) {
+			console.log("updateLeg", hexapod.legs[i]);
+			legAng(hexapod.legs[i]);
+		}
+	}
+	
+	function update() {
+		updateBody();
+		updateLeg();
+	}
+	
+	function updateImageBody() {
+		for (var i = 0; i < hexapod_image_objects.body_legs.length; i++) {
+			hexapod_image_objects.body.points[i].x = hexapod.state.body[hexapod_image_objects.body_legs[i]].x;
+			hexapod_image_objects.body.points[i].y = hexapod.state.body[hexapod_image_objects.body_legs[i]].y;
+		}
+	}
+	
+	function updateImageLeg(ID) {
+		// calc X,Y,Z by angles
+		var tmp = Math.atan2((hexapod.config.body[ID].y - hexapod.config.body.y), (hexapod.config.body[ID].x - hexapod.config.body.x));
+		hexapod_image_objects.leg[ID].C.x1.baseVal.value = hexapod.state.body[ID].x;
+		hexapod_image_objects.leg[ID].C.y1.baseVal.value = hexapod.state.body[ID].y;
+		hexapod_image_objects.leg[ID].C.x2.baseVal.value = hexapod.config.leg[ID].Lc * Math.cos(_deg2rad(hexapod.state.leg[ID].AngC)+tmp) + hexapod.state.body[ID].x;
+		hexapod_image_objects.leg[ID].C.y2.baseVal.value = hexapod.config.leg[ID].Lc * Math.sin(_deg2rad(hexapod.state.leg[ID].AngC)+tmp) + hexapod.state.body[ID].y;
+
+		hexapod_image_objects.leg[ID].F.x1.baseVal.value = hexapod_image_objects.leg[ID].C.x2.baseVal.value;
+		hexapod_image_objects.leg[ID].F.y1.baseVal.value = hexapod_image_objects.leg[ID].C.y2.baseVal.value;
+		var tmpL = Math.sin(_deg2rad(90 - hexapod.state.leg[ID].AngF))*hexapod.config.leg[ID].Lf;
+		hexapod_image_objects.leg[ID].F.x2.baseVal.value = tmpL * Math.cos(_deg2rad(hexapod.state.leg[ID].AngC)+tmp) + hexapod_image_objects.leg[ID].C.x2.baseVal.value;
+		hexapod_image_objects.leg[ID].F.y2.baseVal.value = tmpL * Math.sin(_deg2rad(hexapod.state.leg[ID].AngC)+tmp) + hexapod_image_objects.leg[ID].C.y2.baseVal.value;
+		
+
+		hexapod_image_objects.leg[ID].T.x1.baseVal.value = hexapod_image_objects.leg[ID].F.x2.baseVal.value;
+		hexapod_image_objects.leg[ID].T.y1.baseVal.value = hexapod_image_objects.leg[ID].F.y2.baseVal.value;		
+		var tmpL = hexapod.state.leg[ID].L - tmpL - hexapod.config.leg[ID].Lc;
+		hexapod_image_objects.leg[ID].T.x2.baseVal.value = tmpL * Math.cos(_deg2rad(hexapod.state.leg[ID].AngC)+tmp) + hexapod_image_objects.leg[ID].F.x2.baseVal.value;
+		hexapod_image_objects.leg[ID].T.y2.baseVal.value = tmpL * Math.sin(_deg2rad(hexapod.state.leg[ID].AngC)+tmp) + hexapod_image_objects.leg[ID].F.y2.baseVal.value;
+		
+	}
+	
+	
+	function updateImage() {
+		updateImageBody();
+		for (var i = 0; i < hexapod.legs.length; i++) {
+			console.log("updateImageLeg", hexapod.legs[i]);
+			updateImageLeg(hexapod.legs[i]);
+		}
+	}
+	
+	initHexa();
+</script>
+</body>
+</html>
