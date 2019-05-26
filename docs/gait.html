@@ -7,6 +7,9 @@
 				stroke: black;
 				stroke-linecap: round;
 			}
+			.on_the_ground {
+				stroke-width: 4px;
+			}
 			#hexapod_body {
 				fill: green;
 				stroke: black;
@@ -371,6 +374,11 @@
 		var tmpL = hexapod.state.leg[ID].L - tmpL - hexapod.config.leg[ID].Lc;
 		hexapod_image_objects.leg[ID].T.x2.baseVal.value = tmpL * Math.cos(_deg2rad(hexapod.state.leg[ID].AngC)+tmp) + hexapod_image_objects.leg[ID].F.x2.baseVal.value;
 		hexapod_image_objects.leg[ID].T.y2.baseVal.value = (tmpL * Math.sin(_deg2rad(hexapod.state.leg[ID].AngC)+tmp) * -1 + hexapod_image_objects.leg[ID].F.y2.baseVal.value);
+		if (hexapod.state.leg[ID].z == -hexapod.state.body.z) {
+			hexapod_image_objects.leg[ID].T.className.baseVal = 'on_the_ground';
+		} else {
+			hexapod_image_objects.leg[ID].T.className.baseVal = '';
+		}
 		
 	}
 	
@@ -414,7 +422,7 @@
 		};
 		
 	function moveTo (x,y) {
-		hexapod.dmove.distance_per_step = 1;
+		hexapod.dmove.distance_per_step = 3;
 		hexapod.dmove.dx = x - hexapod.state.body.x;
 		hexapod.dmove.dy = y - hexapod.state.body.y;
 		hexapod.dmove.distance = Math.sqrt(Math.pow(hexapod.dmove.dx,2) + Math.pow(hexapod.dmove.dy, 2));
@@ -433,6 +441,7 @@
 	
 	function movetoNextGaitUpdateLeg(ID) {
 		if (hexapod.dmove.leg[ID].inProgress) {
+			// TODO !!!ANGLE!!!
 			hexapod.state.leg[ID].x += hexapod.dmove.leg[ID].dx;
 			hexapod.state.leg[ID].y += hexapod.dmove.leg[ID].dy;
 			hexapod.state.leg[ID].z += hexapod.dmove.leg[ID].dz;
@@ -451,6 +460,7 @@
 			} else if (leg_state > 0) {
 				if (!hexapod.dmove.leg[ID].inProgress) {
 					hexapod.dmove.leg[ID].inProgress = true;
+					// TODO don't forgot about angle!
 					hexapod.dmove.leg[ID].dx = hexapod.dmove.step_dx/(leg_state*2);	// looks like it will be fail, as here I'm expect that 1 gait = step DX... is it true??? looks like true... have no idea =)
 					hexapod.dmove.leg[ID].dy = hexapod.dmove.step_dy/(leg_state*2);
 					hexapod.dmove.leg[ID].dz = hexapod.dmove.gait_z;	// leg to air (if flat surface)
@@ -478,10 +488,8 @@
 		hexapod.dmove.inProgress = true;
 		hexapod.state.body.x += hexapod.dmove.step_dx/hexapod.dmove.gaitsteps;
 		hexapod.state.body.y += hexapod.dmove.step_dy/hexapod.dmove.gaitsteps;
-		hexapod.state.body.AngZ += hexapod.dmove.step_dAngZ/hexapod.dmove.gaitsteps;	// TODO, move faster and set to 0 as soon as angle reached
-		
-		// TODO recalculate legs XYZ
-		// TODO move
+		// TODO comment until leg calcutae without angle
+		//hexapod.state.body.AngZ += hexapod.dmove.step_dAngZ/hexapod.dmove.gaitsteps;	// TODO, move faster and set to 0 as soon as angle reached
 		
 		updateBody();
 		moveToNextGait();
