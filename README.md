@@ -94,11 +94,14 @@ AngleFemur angle 0...90 deg
 
 
 ```
+AngleCoxa = atan((y1-y0), (x1-x0)) - ServoAngle
+```
 
-AngleCoxa = TODO
+AngleCoxa angle shoud be between -90...90 deg (just for easy to use later), so if `AngleCoxa > 180`, then `AngleCoxa = AngleCoxa - 360`; [atan2](https://en.wikipedia.org/wiki/Atan2)
 
 ```
-AngleCoxa angle -90...90 deg
+ServoAngle = atan((y0 - yBody), (x0 - xBody))
+```
 
  - `Lc` = length of coxa (const)
  - `Lf` = length of femur (const)

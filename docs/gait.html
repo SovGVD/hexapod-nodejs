@@ -184,16 +184,17 @@
 			RB: { Lf2: false, Lt2: false, LtLf: false }
 		}
 	},
+	hexapod.preState = false;
 	hexapod.state = {
 			body: {
 				x: 0, y: 0, z: 0, 
 				AngX: 0, AngY: 0, AngZ: 0,
-				LF:  { x:  15, y:  15, z: 0 },	// TODO use Ang and XYZ
-				LM:  { x:   0, y:  15, z: 0 },
-				LB:  { x: -15, y:  15, z: 0 },
-				RF:  { x:  15, y: -15, z: 0 },
-				RM:  { x:   0, y: -15, z: 0 },
-				RB:  { x: -15, y: -15, z: 0 }
+				LF:  { x: false, y: false, z: false },
+				LM:  { x: false, y: false, z: false },
+				LB:  { x: false, y: false, z: false },
+				RF:  { x: false, y: false, z: false },
+				RM:  { x: false, y: false, z: false },
+				RB:  { x: false, y: false, z: false },
 			},
 			leg: {
 				LF: { AngC: false, AngF: false, AngT: false, x: false, y:false, z: false, L: false },
@@ -208,12 +209,11 @@
 		hexapod.state.leg[ID].L = Math.sqrt(Math.pow(hexapod.state.leg[ID].x - hexapod.state.body[ID].x, 2) + Math.pow(hexapod.state.leg[ID].y - hexapod.state.body[ID].y, 2));
 
 		/*
-		                      y1-y0
-		AngleCoxa = arcsin ( ------- )
-								L
+		                      
+		AngleCoxa = atan2 ( (y1-y0), (x1-x0) )
+								
 		*/
-		var tmp = Math.atan2((hexapod.config.body.y - hexapod.config.body[ID].y), (hexapod.config.body[ID].x - hexapod.config.body.x));	// TODO hexapod.consts
-		hexapod.state.leg[ID].AngC = _rad2deg(Math.atan2((hexapod.state.leg[ID].y - hexapod.state.body[ID].y), (hexapod.state.leg[ID].x - hexapod.state.body[ID].x))+tmp);	// -90...90
+		hexapod.state.leg[ID].AngC = _rad2deg(Math.atan2((hexapod.state.leg[ID].y - hexapod.state.body[ID].y), (hexapod.state.leg[ID].x - hexapod.state.body[ID].x)) - hexapod.const.leg[ID].AngCRad);	// -90...90
 		if (hexapod.state.leg[ID].AngC > 180) hexapod.state.leg[ID].AngC -= 360;
 		/*
 								   Lf^2 + (D^2 + (L - Lc)^2) - Lt^2       PI             L - Lc
@@ -272,10 +272,11 @@
 	
 	function initConst() {
 		for (var i = 0; i < hexapod.legs.length; i++) {
-			console.log("initConst", hexapod.legs[i]);
+			//console.log("initConst", hexapod.legs[i]);
 			hexapod.const.leg[hexapod.legs[i]].Lf2 = Math.pow(hexapod.config.leg[hexapod.legs[i]].Lf, 2);
 			hexapod.const.leg[hexapod.legs[i]].Lt2 = Math.pow(hexapod.config.leg[hexapod.legs[i]].Lt, 2);
 			hexapod.const.leg[hexapod.legs[i]].LtLf = hexapod.config.leg[hexapod.legs[i]].Lt * hexapod.config.leg[hexapod.legs[i]].Lf;
+			hexapod.const.leg[hexapod.legs[i]].AngCRad = Math.atan2((hexapod.config.body[hexapod.legs[i]].y - hexapod.config.body.y), (hexapod.config.body[hexapod.legs[i]].x - hexapod.config.body.x));
 		}
 	}
 	
@@ -295,7 +296,7 @@
 
 	function updateLeg() {
 		for (var i = 0; i < hexapod.legs.length; i++) {
-			console.log("updateLeg", hexapod.legs[i]);
+			//console.log("updateLeg", hexapod.legs[i]);
 			legAng(hexapod.legs[i]);
 		}
 	}
@@ -317,7 +318,7 @@
 	}
 	function updateImageLeg(ID) {
 		// calc X,Y,Z by angles
-		var tmp = Math.atan2((hexapod.config.body[ID].y - hexapod.config.body.y), (hexapod.config.body[ID].x - hexapod.config.body.x));
+		var tmp = hexapod.const.leg[ID].AngCRad;
 		hexapod_image_objects.leg[ID].C.x1.baseVal.value = hexapod.state.body[ID].x;
 		hexapod_image_objects.leg[ID].C.y1.baseVal.value = hexapod.state.body[ID].y * -1;
 		hexapod_image_objects.leg[ID].C.x2.baseVal.value = hexapod.config.leg[ID].Lc * Math.cos(_deg2rad(hexapod.state.leg[ID].AngC)+tmp) + hexapod.state.body[ID].x;
@@ -352,7 +353,7 @@
 	function updateImage() {
 		updateImageBody();
 		for (var i = 0; i < hexapod.legs.length; i++) {
-			console.log("updateImageLeg", hexapod.legs[i]);
+			//console.log("updateImageLeg", hexapod.legs[i]);
 			updateImageLeg(hexapod.legs[i]);
 		}
 	}
