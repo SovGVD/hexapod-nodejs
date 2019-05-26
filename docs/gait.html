@@ -13,61 +13,67 @@
 			}
 
 			#hexapod_leg_LF_C { stroke: rgba(255,0,0,1); }
-			#hexapod_leg_LF_F { stroke: rgba(255,0,128,1); }
+			#hexapod_leg_LF_F { stroke: rgba(128,0,255,1); }
 			#hexapod_leg_LF_T { stroke: rgba(255,0,0,1); }
 
 			#hexapod_leg_LM_C { stroke: rgba(255,0,0,1); }
-			#hexapod_leg_LM_F { stroke: rgba(255,0,255,1); }
+			#hexapod_leg_LM_F { stroke: rgba(128,0,255,1); }
 			#hexapod_leg_LM_T { stroke: rgba(255,0,0,1); }
 			
 			#hexapod_leg_LB_C { stroke: rgba(255,0,0,1); }
-			#hexapod_leg_LB_F { stroke: rgba(255,0,255,0.7); }
+			#hexapod_leg_LB_F { stroke: rgba(128,0,255,0.7); }
 			#hexapod_leg_LB_T { stroke: rgba(255,0,0,1); }
 			
 
 			#hexapod_leg_RF_C { stroke: rgba(0,255,0,1); }
-			#hexapod_leg_RF_F { stroke: rgba(0,255,255,1); }
+			#hexapod_leg_RF_F { stroke: rgba(0,128,255,1); }
 			#hexapod_leg_RF_T { stroke: rgba(0,255,0,1); }
 
 			#hexapod_leg_RM_C { stroke: rgba(0,255,0,1); }
-			#hexapod_leg_RM_F { stroke: rgba(0,255,255,1); }
+			#hexapod_leg_RM_F { stroke: rgba(0,128,255,1); }
 			#hexapod_leg_RM_T { stroke: rgba(0,255,0,1); }
 			
 			#hexapod_leg_RB_C { stroke: rgba(0,255,0,1); }
-			#hexapod_leg_RB_F { stroke: rgba(0,255,255,1); }
+			#hexapod_leg_RB_F { stroke: rgba(0,128,255,1); }
 			#hexapod_leg_RB_T { stroke: rgba(0,255,0,1); }
 			
-
+			.svg_text_dbg {
+				font: 3px sans-serif;
+				fill: rgba(0,0,0,1);
+				stroke: rgba(255,255,255,1);
+				stroke-width: 0.1px;
+				z-index: 999;
+			}
 	</style>
 </head>
 <body>
 <svg width="600" height="600" id="svgimg">
-	<g id="hexapod" transform="translate(300,300) scale(1)">
+	<g id="hexapod" transform="translate(300,300) scale(4)">
 		<polygon points="0,0 1,1 2,2 3,3 4,4 5,5" id="hexapod_body" />
 		
-		<line x1="0" y1="0" x2="0" y2="0" id="hexapod_leg_LF_C" />
-		<line x1="0" y1="0" x2="0" y2="0" id="hexapod_leg_LF_F" />
-		<line x1="0" y1="0" x2="0" y2="0" id="hexapod_leg_LF_T" />
+		<line x1="0" y1="0" x2="0" y2="0" id="hexapod_leg_LF_C" /><text x="0" y="0" id="hexapod_leg_LF_C_DBG" class="svg_text_dbg"></text>
+		<line x1="0" y1="0" x2="0" y2="0" id="hexapod_leg_LF_F" /><text x="0" y="0" id="hexapod_leg_LF_F_DBG" class="svg_text_dbg"></text>
+		<line x1="0" y1="0" x2="0" y2="0" id="hexapod_leg_LF_T" /><text x="0" y="0" id="hexapod_leg_LF_T_DBG" class="svg_text_dbg"></text>
 		
-		<line x1="0" y1="0" x2="0" y2="0" id="hexapod_leg_LM_C" />
-		<line x1="0" y1="0" x2="0" y2="0" id="hexapod_leg_LM_F" />
-		<line x1="0" y1="0" x2="0" y2="0" id="hexapod_leg_LM_T" />
+		<line x1="0" y1="0" x2="0" y2="0" id="hexapod_leg_LM_C" /><text x="0" y="0" id="hexapod_leg_LM_C_DBG" class="svg_text_dbg"></text>
+		<line x1="0" y1="0" x2="0" y2="0" id="hexapod_leg_LM_F" /><text x="0" y="0" id="hexapod_leg_LM_F_DBG" class="svg_text_dbg"></text>
+		<line x1="0" y1="0" x2="0" y2="0" id="hexapod_leg_LM_T" /><text x="0" y="0" id="hexapod_leg_LM_T_DBG" class="svg_text_dbg"></text>
 		
-		<line x1="0" y1="0" x2="0" y2="0" id="hexapod_leg_LB_C" />
-		<line x1="0" y1="0" x2="0" y2="0" id="hexapod_leg_LB_F" />
-		<line x1="0" y1="0" x2="0" y2="0" id="hexapod_leg_LB_T" />
+		<line x1="0" y1="0" x2="0" y2="0" id="hexapod_leg_LB_C" /><text x="0" y="0" id="hexapod_leg_LB_C_DBG" class="svg_text_dbg"></text>
+		<line x1="0" y1="0" x2="0" y2="0" id="hexapod_leg_LB_F" /><text x="0" y="0" id="hexapod_leg_LB_F_DBG" class="svg_text_dbg"></text>
+		<line x1="0" y1="0" x2="0" y2="0" id="hexapod_leg_LB_T" /><text x="0" y="0" id="hexapod_leg_LB_T_DBG" class="svg_text_dbg"></text>
 		
-		<line x1="0" y1="0" x2="0" y2="0" id="hexapod_leg_RF_C" />
-		<line x1="0" y1="0" x2="0" y2="0" id="hexapod_leg_RF_F" />
-		<line x1="0" y1="0" x2="0" y2="0" id="hexapod_leg_RF_T" />
+		<line x1="0" y1="0" x2="0" y2="0" id="hexapod_leg_RF_C" /><text x="0" y="0" id="hexapod_leg_RF_C_DBG" class="svg_text_dbg"></text>
+		<line x1="0" y1="0" x2="0" y2="0" id="hexapod_leg_RF_F" /><text x="0" y="0" id="hexapod_leg_RF_F_DBG" class="svg_text_dbg"></text>
+		<line x1="0" y1="0" x2="0" y2="0" id="hexapod_leg_RF_T" /><text x="0" y="0" id="hexapod_leg_RF_T_DBG" class="svg_text_dbg"></text>
 		
-		<line x1="0" y1="0" x2="0" y2="0" id="hexapod_leg_RM_C" />
-		<line x1="0" y1="0" x2="0" y2="0" id="hexapod_leg_RM_F" />
-		<line x1="0" y1="0" x2="0" y2="0" id="hexapod_leg_RM_T" />
+		<line x1="0" y1="0" x2="0" y2="0" id="hexapod_leg_RM_C" /><text x="0" y="0" id="hexapod_leg_RM_C_DBG" class="svg_text_dbg"></text>
+		<line x1="0" y1="0" x2="0" y2="0" id="hexapod_leg_RM_F" /><text x="0" y="0" id="hexapod_leg_RM_F_DBG" class="svg_text_dbg"></text>
+		<line x1="0" y1="0" x2="0" y2="0" id="hexapod_leg_RM_T" /><text x="0" y="0" id="hexapod_leg_RM_T_DBG" class="svg_text_dbg"></text>
 		
-		<line x1="0" y1="0" x2="0" y2="0" id="hexapod_leg_RB_C" />
-		<line x1="0" y1="0" x2="0" y2="0" id="hexapod_leg_RB_F" />
-		<line x1="0" y1="0" x2="0" y2="0" id="hexapod_leg_RB_T" />
+		<line x1="0" y1="0" x2="0" y2="0" id="hexapod_leg_RB_C" /><text x="0" y="0" id="hexapod_leg_RB_C_DBG" class="svg_text_dbg"></text>
+		<line x1="0" y1="0" x2="0" y2="0" id="hexapod_leg_RB_F" /><text x="0" y="0" id="hexapod_leg_RB_F_DBG" class="svg_text_dbg"></text>
+		<line x1="0" y1="0" x2="0" y2="0" id="hexapod_leg_RB_T" /><text x="0" y="0" id="hexapod_leg_RB_T_DBG" class="svg_text_dbg"></text>
 	</g>
 </svg>
 <script>
@@ -109,7 +115,40 @@
 				F: G('hexapod_leg_RB_F'),
 				T: G('hexapod_leg_RB_T'),
 			},
-
+		},
+		dbg: {
+			leg: {
+				LF: {
+					C: G('hexapod_leg_LF_C_DBG'),
+					F: G('hexapod_leg_LF_F_DBG'),
+					T: G('hexapod_leg_LF_T_DBG'),
+				},
+				LM: {
+					C: G('hexapod_leg_LM_C_DBG'),
+					F: G('hexapod_leg_LM_F_DBG'),
+					T: G('hexapod_leg_LM_T_DBG'),
+				},
+				LB: {
+					C: G('hexapod_leg_LB_C_DBG'),
+					F: G('hexapod_leg_LB_F_DBG'),
+					T: G('hexapod_leg_LB_T_DBG'),
+				},
+				RF: {
+					C: G('hexapod_leg_RF_C_DBG'),
+					F: G('hexapod_leg_RF_F_DBG'),
+					T: G('hexapod_leg_RF_T_DBG'),
+				},
+				RM: {
+					C: G('hexapod_leg_RM_C_DBG'),
+					F: G('hexapod_leg_RM_F_DBG'),
+					T: G('hexapod_leg_RM_T_DBG'),
+				},
+				RB: {
+					C: G('hexapod_leg_RB_C_DBG'),
+					F: G('hexapod_leg_RB_F_DBG'),
+					T: G('hexapod_leg_RB_T_DBG'),
+				},
+			}
 		}
 	};
 	// hexapod sizes
@@ -119,20 +158,20 @@
 			body: {
 				x: 0, y: 0, z: 3,	// z - distance from ground
 				AngX: 0, AngY: 0, AngZ: 0,
-				LF:  { x: -10, y:  15, z: 0 },
-				LM:  { x: -10, y:   0, z: 0 },
-				LB:  { x: -10, y: -15, z: 0 },
-				RF:  { x:  10, y:  15, z: 0 },
-				RM:  { x:  10, y:   0, z: 0 },
-				RB:  { x:  10, y: -15, z: 0 }
+				LF:  { x:  15, y:  15, z: 0 },
+				LM:  { x:   0, y:  15, z: 0 },
+				LB:  { x: -15, y:  15, z: 0 },
+				RF:  { x:  15, y: -15, z: 0 },
+				RM:  { x:   0, y: -15, z: 0 },
+				RB:  { x: -15, y: -15, z: 0 }
 			},
 			leg: {
-				LF: { AngC: 0, Lc: 3, Lf: 3, Lt: 7, L: { min: 4, max: 12, default: 12 } },	// TODO min and max!!! AngF (0...90)
-				LM: { AngC: 0, Lc: 3, Lf: 3, Lt: 7, L: { min: 4, max: 12, default: 12 } },
-				LB: { AngC: 0, Lc: 3, Lf: 3, Lt: 7, L: { min: 4, max: 12, default: 12 } },
-				RF: { AngC: 0, Lc: 3, Lf: 3, Lt: 7, L: { min: 4, max: 12, default: 12 } },
-				RM: { AngC: 0, Lc: 3, Lf: 3, Lt: 7, L: { min: 4, max: 12, default: 12 } },
-				RB: { AngC: 0, Lc: 3, Lf: 3, Lt: 7, L: { min: 4, max: 12, default: 12 } }
+				LF: { AngC: 0, Lc: 2, Lf: 4, Lt: 8, L: { min: 4, max: 12, default: 12 } },	// TODO min and max!!! AngF (0...90)
+				LM: { AngC: 0, Lc: 2, Lf: 4, Lt: 8, L: { min: 4, max: 12, default: 12 } },
+				LB: { AngC: 0, Lc: 2, Lf: 4, Lt: 8, L: { min: 4, max: 12, default: 12 } },
+				RF: { AngC: 0, Lc: 2, Lf: 4, Lt: 8, L: { min: 4, max: 12, default: 12 } },
+				RM: { AngC: 0, Lc: 2, Lf: 4, Lt: 8, L: { min: 4, max: 12, default: 12 } },
+				RB: { AngC: 0, Lc: 2, Lf: 4, Lt: 8, L: { min: 4, max: 12, default: 12 } }
 			},
 		};
 	hexapod.const = {
@@ -149,12 +188,12 @@
 			body: {
 				x: 0, y: 0, z: 0, 
 				AngX: 0, AngY: 0, AngZ: 0,
-				LF:  { x: -10, y:  15, z: 0 },	// TODO, based on body xyz and angles
-				LM:  { x: -10, y:   0, z: 0 },
-				LB:  { x: -10, y: -15, z: 0 },
-				RF:  { x:  10, y:  15, z: 0 },
-				RM:  { x:  10, y:   0, z: 0 },
-				RB:  { x:  10, y: -15, z: 0 }
+				LF:  { x:  15, y:  15, z: 0 },	// TODO use Ang and XYZ
+				LM:  { x:   0, y:  15, z: 0 },
+				LB:  { x: -15, y:  15, z: 0 },
+				RF:  { x:  15, y: -15, z: 0 },
+				RM:  { x:   0, y: -15, z: 0 },
+				RB:  { x: -15, y: -15, z: 0 }
 			},
 			leg: {
 				LF: { AngC: false, AngF: false, AngT: false, x: false, y:false, z: false, L: false },
@@ -173,9 +212,9 @@
 		AngleCoxa = arcsin ( ------- )
 								L
 		*/
-		var tmp = Math.atan2((hexapod.config.body[ID].y - hexapod.config.body.y), (hexapod.config.body[ID].x - hexapod.config.body.x));
-		hexapod.state.leg[ID].AngC = _rad2deg(Math.atan2((hexapod.state.body[ID].y - hexapod.state.body.y), (hexapod.state.body[ID].x - hexapod.state.body.x)) - tmp);
-
+		var tmp = Math.atan2((hexapod.config.body.y - hexapod.config.body[ID].y), (hexapod.config.body[ID].x - hexapod.config.body.x));	// TODO hexapod.consts
+		hexapod.state.leg[ID].AngC = _rad2deg(Math.atan2((hexapod.state.leg[ID].y - hexapod.state.body[ID].y), (hexapod.state.leg[ID].x - hexapod.state.body[ID].x))+tmp);	// -90...90
+		if (hexapod.state.leg[ID].AngC > 180) hexapod.state.leg[ID].AngC -= 360;
 		/*
 								   Lf^2 + (D^2 + (L - Lc)^2) - Lt^2       PI             L - Lc
 			AngleFemur = arccos ( ---------------------------------- ) - ---- + arctan( -------- )
@@ -191,8 +230,6 @@
 		*/
 		hexapod.state.leg[ID].AngT = _rad2deg(Math.acos((hexapod.const.leg[ID].Lt2 + hexapod.const.leg[ID].Lf2 - tmp) / (2 * hexapod.const.leg[ID].LtLf)));
 	}
-	
-	// TODO 0...360 only!
 	
 	function _degNorm(deg) {
 		while (deg > 360 || deg < 0) {
@@ -220,8 +257,8 @@
 		// init leg XYZ based on init AngC and default length od leg
 		hexapod.state.leg[ID].z = -hexapod.state.body.z;	// init leg D from ground;
 		var tmp = _rad2deg(Math.atan2((hexapod.config.body[ID].y - hexapod.config.body.y), (hexapod.config.body[ID].x - hexapod.config.body.x)));
-		hexapod.state.leg[ID].x = Math.sin(_deg2rad(hexapod.config.leg[ID].AngC+tmp)) * hexapod.config.leg[ID].L.default + hexapod.config.body[ID].x;
-		hexapod.state.leg[ID].y = Math.cos(_deg2rad(hexapod.config.leg[ID].AngC+tmp)) * hexapod.config.leg[ID].L.default + hexapod.config.body[ID].y;
+		hexapod.state.leg[ID].x = Math.cos(_deg2rad(hexapod.config.leg[ID].AngC+tmp)) * hexapod.config.leg[ID].L.default + hexapod.config.body[ID].x;
+		hexapod.state.leg[ID].y = Math.sin(_deg2rad(hexapod.config.leg[ID].AngC+tmp)) * hexapod.config.leg[ID].L.default + hexapod.config.body[ID].y;
 	}
 	
 	function initState() {
@@ -250,6 +287,10 @@
 	function updateBody() {
 		// TODO!!!
 		// And don't forgot about body angle!
+		for (var i = 0; i < hexapod.legs.length; i++) {
+			hexapod.state.body[hexapod.legs[i]].x = hexapod.state.body.x + hexapod.config.body[hexapod.legs[i]].x;
+			hexapod.state.body[hexapod.legs[i]].y = hexapod.state.body.y + hexapod.config.body[hexapod.legs[i]].y;
+		}
 	}
 
 	function updateLeg() {
@@ -267,30 +308,43 @@
 	function updateImageBody() {
 		for (var i = 0; i < hexapod_image_objects.body_legs.length; i++) {
 			hexapod_image_objects.body.points[i].x = hexapod.state.body[hexapod_image_objects.body_legs[i]].x;
-			hexapod_image_objects.body.points[i].y = hexapod.state.body[hexapod_image_objects.body_legs[i]].y;
+			hexapod_image_objects.body.points[i].y = hexapod.state.body[hexapod_image_objects.body_legs[i]].y * -1;	// invert Y axis for display
 		}
 	}
 	
+	function updateImageAngDisplay(deg) {
+		return (Math.round(deg*10)/10)+"&deg;"
+	}
 	function updateImageLeg(ID) {
 		// calc X,Y,Z by angles
 		var tmp = Math.atan2((hexapod.config.body[ID].y - hexapod.config.body.y), (hexapod.config.body[ID].x - hexapod.config.body.x));
 		hexapod_image_objects.leg[ID].C.x1.baseVal.value = hexapod.state.body[ID].x;
-		hexapod_image_objects.leg[ID].C.y1.baseVal.value = hexapod.state.body[ID].y;
+		hexapod_image_objects.leg[ID].C.y1.baseVal.value = hexapod.state.body[ID].y * -1;
 		hexapod_image_objects.leg[ID].C.x2.baseVal.value = hexapod.config.leg[ID].Lc * Math.cos(_deg2rad(hexapod.state.leg[ID].AngC)+tmp) + hexapod.state.body[ID].x;
-		hexapod_image_objects.leg[ID].C.y2.baseVal.value = hexapod.config.leg[ID].Lc * Math.sin(_deg2rad(hexapod.state.leg[ID].AngC)+tmp) + hexapod.state.body[ID].y;
+		hexapod_image_objects.leg[ID].C.y2.baseVal.value = (hexapod.config.leg[ID].Lc * Math.sin(_deg2rad(hexapod.state.leg[ID].AngC)+tmp) + hexapod.state.body[ID].y) * -1;
+			hexapod_image_objects.dbg.leg[ID].C.x.baseVal[0].value = hexapod_image_objects.leg[ID].C.x1.baseVal.value;
+			hexapod_image_objects.dbg.leg[ID].C.y.baseVal[0].value = hexapod_image_objects.leg[ID].C.y1.baseVal.value;
+			hexapod_image_objects.dbg.leg[ID].C.innerHTML = updateImageAngDisplay(hexapod.state.leg[ID].AngC);
 
 		hexapod_image_objects.leg[ID].F.x1.baseVal.value = hexapod_image_objects.leg[ID].C.x2.baseVal.value;
 		hexapod_image_objects.leg[ID].F.y1.baseVal.value = hexapod_image_objects.leg[ID].C.y2.baseVal.value;
+			hexapod_image_objects.dbg.leg[ID].F.x.baseVal[0].value = hexapod_image_objects.leg[ID].F.x1.baseVal.value;
+			hexapod_image_objects.dbg.leg[ID].F.y.baseVal[0].value = hexapod_image_objects.leg[ID].F.y1.baseVal.value;
+			hexapod_image_objects.dbg.leg[ID].F.innerHTML = updateImageAngDisplay(hexapod.state.leg[ID].AngF);
+
 		var tmpL = Math.sin(_deg2rad(90 - hexapod.state.leg[ID].AngF))*hexapod.config.leg[ID].Lf;
 		hexapod_image_objects.leg[ID].F.x2.baseVal.value = tmpL * Math.cos(_deg2rad(hexapod.state.leg[ID].AngC)+tmp) + hexapod_image_objects.leg[ID].C.x2.baseVal.value;
-		hexapod_image_objects.leg[ID].F.y2.baseVal.value = tmpL * Math.sin(_deg2rad(hexapod.state.leg[ID].AngC)+tmp) + hexapod_image_objects.leg[ID].C.y2.baseVal.value;
+		hexapod_image_objects.leg[ID].F.y2.baseVal.value = (tmpL * Math.sin(_deg2rad(hexapod.state.leg[ID].AngC)+tmp) * -1 + hexapod_image_objects.leg[ID].C.y2.baseVal.value);
 		
 
 		hexapod_image_objects.leg[ID].T.x1.baseVal.value = hexapod_image_objects.leg[ID].F.x2.baseVal.value;
 		hexapod_image_objects.leg[ID].T.y1.baseVal.value = hexapod_image_objects.leg[ID].F.y2.baseVal.value;		
+			hexapod_image_objects.dbg.leg[ID].T.x.baseVal[0].value = hexapod_image_objects.leg[ID].T.x1.baseVal.value;
+			hexapod_image_objects.dbg.leg[ID].T.y.baseVal[0].value = hexapod_image_objects.leg[ID].T.y1.baseVal.value;
+			hexapod_image_objects.dbg.leg[ID].T.innerHTML = updateImageAngDisplay(hexapod.state.leg[ID].AngT);
 		var tmpL = hexapod.state.leg[ID].L - tmpL - hexapod.config.leg[ID].Lc;
 		hexapod_image_objects.leg[ID].T.x2.baseVal.value = tmpL * Math.cos(_deg2rad(hexapod.state.leg[ID].AngC)+tmp) + hexapod_image_objects.leg[ID].F.x2.baseVal.value;
-		hexapod_image_objects.leg[ID].T.y2.baseVal.value = tmpL * Math.sin(_deg2rad(hexapod.state.leg[ID].AngC)+tmp) + hexapod_image_objects.leg[ID].F.y2.baseVal.value;
+		hexapod_image_objects.leg[ID].T.y2.baseVal.value = (tmpL * Math.sin(_deg2rad(hexapod.state.leg[ID].AngC)+tmp) * -1 + hexapod_image_objects.leg[ID].F.y2.baseVal.value);
 		
 	}
 	

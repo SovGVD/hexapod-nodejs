@@ -27,10 +27,10 @@ Top view (initial state)
         |  \
         |   AngleCoxa
 
-+Y
-^
-|
-Z---> +X
+     +X
+      ^
+      |
+Y+<---Z
 ```
 
 
@@ -47,10 +47,10 @@ Z---> +X
         |   AngleCoxa
 
 
-+Y
-^
-|
-Z---> +X
+     +X
+      ^
+      |
+Y+<---Z
 ```
 
 Front view
@@ -69,7 +69,7 @@ Front view
 +Z
 ^
 |
-Y---> +X
+X---> +Y
 ```
 
 `x0,y0,z0` - point of connection leg to body
@@ -94,9 +94,9 @@ AngleFemur angle 0...90 deg
 
 
 ```
-                      y1-y0
-AngleCoxa = arcsin ( ------- )
-                        L
+
+AngleCoxa = TODO
+
 ```
 AngleCoxa angle -90...90 deg
 
@@ -124,9 +124,9 @@ TODO:
    Leg(0) [LF]    FRONT    [RF] Leg(1)
          ---0===============0---
             ||             ||
-            ||      ^Y     ||
- Leg(2) [LM]||      |  X   ||[RM] Leg(3)
-         ---0       Z-->    0---
+            ||      ^X     ||
+ Leg(2) [LM]||   Y  |      ||[RM] Leg(3)
+         ---0    <--Z       0---
             || (0,0,D)     ||
             ||             ||
             ||             ||
