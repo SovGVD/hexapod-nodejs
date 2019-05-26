@@ -166,13 +166,30 @@
 				RB:  { x: -15, y: -15, z: 0 }
 			},
 			leg: {
-				LF: { AngC: 0, Lc: 2, Lf: 4, Lt: 8, L: { min: 4, max: 12, default: 12 } },	// TODO min and max!!! AngF (0...90)
-				LM: { AngC: 0, Lc: 2, Lf: 4, Lt: 8, L: { min: 4, max: 12, default: 12 } },
-				LB: { AngC: 0, Lc: 2, Lf: 4, Lt: 8, L: { min: 4, max: 12, default: 12 } },
-				RF: { AngC: 0, Lc: 2, Lf: 4, Lt: 8, L: { min: 4, max: 12, default: 12 } },
-				RM: { AngC: 0, Lc: 2, Lf: 4, Lt: 8, L: { min: 4, max: 12, default: 12 } },
-				RB: { AngC: 0, Lc: 2, Lf: 4, Lt: 8, L: { min: 4, max: 12, default: 12 } }
+				LF: { AngC: { min: -50, max: 50, default: 0 }, Lc: 2, Lf: 4, Lt: 8, L: { min: 4, max: 12, default: 12 } },	// TODO min and max!!! AngF (0...90)
+				LM: { AngC: { min: -50, max: 50, default: 0 }, Lc: 2, Lf: 4, Lt: 8, L: { min: 4, max: 12, default: 12 } },
+				LB: { AngC: { min: -50, max: 50, default: 0 }, Lc: 2, Lf: 4, Lt: 8, L: { min: 4, max: 12, default: 12 } },
+				RF: { AngC: { min: -50, max: 50, default: 0 }, Lc: 2, Lf: 4, Lt: 8, L: { min: 4, max: 12, default: 12 } },
+				RM: { AngC: { min: -50, max: 50, default: 0 }, Lc: 2, Lf: 4, Lt: 8, L: { min: 4, max: 12, default: 12 } },
+				RB: { AngC: { min: -50, max: 50, default: 0 }, Lc: 2, Lf: 4, Lt: 8, L: { min: 4, max: 12, default: 12 } }
 			},
+			gait: {
+				type: "RIPPLE",	// balance between stable (4 legs on the ground) and speed (not so slow as wave 1 by 1, bu not so fast as with tripod)
+				sequence: [
+					{ "LF": 0, "LM": 0, "LB": 1, "RF": 0, "RM": 1, "RB": 0 },	// 0 - on the ground (stance), 1 - in the air (swing)
+					{ "LF": 0, "LM": 0, "LB": 1, "RF": 1, "RM": 0, "RB": 0 },
+					{ "LF": 0, "LM": 1, "LB": 0, "RF": 1, "RM": 0, "RB": 0 },
+					{ "LF": 0, "LM": 1, "LB": 0, "RF": 0, "RM": 0, "RB": 1 },
+					{ "LF": 1, "LM": 0, "LB": 0, "RF": 0, "RM": 0, "RB": 1 },
+					{ "LF": 1, "LM": 0, "LB": 0, "RF": 0, "RM": 1, "RB": 0 },
+					{ "LF": 0, "LM": 0, "LB": 1, "RF": 0, "RM": 1, "RB": 0 },
+					{ "LF": 0, "LM": 0, "LB": 1, "RF": 1, "RM": 0, "RB": 0 },
+					{ "LF": 0, "LM": 1, "LB": 0, "RF": 1, "RM": 0, "RB": 0 },
+					{ "LF": 0, "LM": 1, "LB": 0, "RF": 0, "RM": 0, "RB": 1 },
+					{ "LF": 1, "LM": 0, "LB": 0, "RF": 0, "RM": 0, "RB": 1 },
+					{ "LF": 1, "LM": 0, "LB": 0, "RF": 0, "RM": 1, "RB": 0 }
+				]
+			}
 		};
 	hexapod.const = {
 		leg: {
@@ -187,6 +204,7 @@
 	hexapod.preState = false;
 	hexapod.state = {
 			body: {
+				x0: 0, y0: 0, z0:0,	// inititial position, TODO update after gait*steps finished
 				x: 0, y: 0, z: 0, 
 				AngX: 0, AngY: 0, AngZ: 0,
 				LF:  { x: false, y: false, z: false },
@@ -206,6 +224,9 @@
 			}
 		};
 	function legAng (ID) {
+		// TODO, precheck leg mimits:
+		// 1. create 3D polygon of max/min available positions, including angles limits
+		// 2. check if x1,y1,z1 in that polygon
 		hexapod.state.leg[ID].L = Math.sqrt(Math.pow(hexapod.state.leg[ID].x - hexapod.state.body[ID].x, 2) + Math.pow(hexapod.state.leg[ID].y - hexapod.state.body[ID].y, 2));
 
 		/*
@@ -250,6 +271,9 @@
 		hexapod.state.body.x    = parseFloat(hexapod.config.body.x);
 		hexapod.state.body.y    = parseFloat(hexapod.config.body.y);
 		hexapod.state.body.z    = parseFloat(hexapod.config.body.z);
+		hexapod.state.body.x0   = parseFloat(hexapod.config.body.x);
+		hexapod.state.body.y0   = parseFloat(hexapod.config.body.y);
+		hexapod.state.body.z0   = parseFloat(hexapod.config.body.z);
 		hexapod.state.body.AngX = parseFloat(hexapod.config.body.AngX);
 		hexapod.state.body.AngY = parseFloat(hexapod.config.body.AngY);
 		hexapod.state.body.AngZ = parseFloat(hexapod.config.body.AngZ);
@@ -259,8 +283,8 @@
 		// init leg XYZ based on init AngC and default length od leg
 		hexapod.state.leg[ID].z = -hexapod.state.body.z;	// init leg D from ground;
 		var tmp = _rad2deg(Math.atan2((hexapod.config.body[ID].y - hexapod.config.body.y), (hexapod.config.body[ID].x - hexapod.config.body.x)));
-		hexapod.state.leg[ID].x = Math.cos(_deg2rad(hexapod.config.leg[ID].AngC+tmp)) * hexapod.config.leg[ID].L.default + hexapod.config.body[ID].x;
-		hexapod.state.leg[ID].y = Math.sin(_deg2rad(hexapod.config.leg[ID].AngC+tmp)) * hexapod.config.leg[ID].L.default + hexapod.config.body[ID].y;
+		hexapod.state.leg[ID].x = Math.cos(_deg2rad(hexapod.config.leg[ID].AngC.default+tmp)) * hexapod.config.leg[ID].L.default + hexapod.config.body[ID].x;
+		hexapod.state.leg[ID].y = Math.sin(_deg2rad(hexapod.config.leg[ID].AngC.default+tmp)) * hexapod.config.leg[ID].L.default + hexapod.config.body[ID].y;
 	}
 	
 	function initState() {
@@ -278,6 +302,7 @@
 			hexapod.const.leg[hexapod.legs[i]].LtLf = hexapod.config.leg[hexapod.legs[i]].Lt * hexapod.config.leg[hexapod.legs[i]].Lf;
 			hexapod.const.leg[hexapod.legs[i]].AngCRad = Math.atan2((hexapod.config.body[hexapod.legs[i]].y - hexapod.config.body.y), (hexapod.config.body[hexapod.legs[i]].x - hexapod.config.body.x));
 		}
+		// TODO init min/max 3d polygon for legs
 	}
 	
 	function initHexa() {
@@ -314,7 +339,7 @@
 	}
 	
 	function updateImageAngDisplay(deg) {
-		return (Math.round(deg*10)/10)+"&deg;"
+		return (Math.round(deg*10)/10)+"&deg;";
 	}
 	function updateImageLeg(ID) {
 		// calc X,Y,Z by angles
@@ -354,10 +379,80 @@
 		updateImageBody();
 		for (var i = 0; i < hexapod.legs.length; i++) {
 			//console.log("updateImageLeg", hexapod.legs[i]);
-			updateImageLeg(hexapod.legs[i]);
+			try {
+				updateImageLeg(hexapod.legs[i]);
+			} catch (e) {
+				console.log("ERROR");
+			}
 		}
 	}
 	
+	
+	
+	hexapod.dmove = {
+			inProgress: false,
+			distance_per_step: false,
+			distance: false,
+			dx: false,	// delta of full move
+			dy: false,
+			dAngZ: false,
+			angle: false,
+			steps: false,
+			current_step: false,
+			gait_steps: hexapod.config.gait.sequence.length,
+			current_gait_step: 0,	// should not be reseted!!!
+			step_deplay: 100	// pretent that this is servo move delay (ms) for one of the gait step (later this should be triggered by sensors on the end of the legs)
+		};
+		
+	function moveTo (x,y) {
+		hexapod.dmove.distance_per_step = 1;
+		hexapod.dmove.dx = x - hexapod.state.body.x;
+		hexapod.dmove.dy = y - hexapod.state.body.y;
+		hexapod.dmove.distance = Math.sqrt(Math.pow(hexapod.dmove.dx,2) + Math.pow(hexapod.dmove.dy, 2));
+		hexapod.dmove.AngZ = _rad2deg(Math.atan2(hexapod.dmove.dy, hexapod.dmove.dx));
+		hexapod.dmove.dAngZ = hexapod.dmove.AngZ - hexapod.state.body.AngZ;
+		hexapod.dmove.steps = Math.floor(hexapod.dmove.distance/hexapod.dmove.distance_per_step);
+		
+		// reset step counter
+		hexapod.dmove.current_step = 0;
+
+		hexapod.dmove.step_dx = hexapod.dmove.dx/hexapod.dmove.steps;
+		hexapod.dmove.step_dy = hexapod.dmove.dy/hexapod.dmove.steps;
+		hexapod.dmove.step_dAngZ = hexapod.dmove.dAngZ/hexapod.dmove.steps;
+		moveToNext();
+	}
+	
+	function moveToNext() {
+		hexapod.dmove.inProgress = true;
+		console.log("MOVE body", hexapod.dmove, hexapod.state.body);
+		hexapod.state.body.x += hexapod.dmove.step_dx/hexapod.dmove.gait_steps;
+		hexapod.state.body.y += hexapod.dmove.step_dy/hexapod.dmove.gait_steps;
+		hexapod.state.body.AngZ += hexapod.dmove.step_dAngZ/hexapod.dmove.gait_steps;
+		
+		// TODO recalculate legs XYZ
+		// TODO move
+		
+		updateBody();
+		updateLeg();
+
+		console.log("MOVE body", hexapod.dmove, hexapod.state.body);
+		updateImage();
+		
+		hexapod.dmove.current_gait_step++;
+		if (hexapod.dmove.current_gait_step >= hexapod.dmove.gait_steps) {
+			hexapod.dmove.current_gait_step = 0;
+			hexapod.dmove.current_step++;
+			console.log("nextStep");
+		}
+		// TODO stop also on point archive, as it should be done faster then step
+		if (hexapod.dmove.current_step >= hexapod.dmove.steps) {
+			// TODO zero current position, e.g. x,y,z -> 0,0,0, the same for angles
+			// TODO save moved XYZ and angles for odometry and later SLAM
+			hexapod.dmove.inProgress = false;
+		} else if (hexapod.dmove.inProgress) {
+			setTimeout(moveToNext, hexapod.dmove.step_deplay);
+		}
+	}
 	
 	initHexa();
 
