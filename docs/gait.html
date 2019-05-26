@@ -5,11 +5,12 @@
 			line {
 				stroke-width: 2px;
 				stroke: black;
+				stroke-linecap: round;
 			}
 			#hexapod_body {
 				fill: green;
 				stroke: black;
-				stroke-width: 2px;
+				stroke-width: 0.5px;
 			}
 
 			#hexapod_leg_LF_C { stroke: rgba(255,0,0,1); }
@@ -38,11 +39,10 @@
 			#hexapod_leg_RB_T { stroke: rgba(0,255,0,1); }
 			
 			.svg_text_dbg {
-				font: 3px sans-serif;
+				font: 2.5px sans-serif;
 				fill: rgba(0,0,0,1);
 				stroke: rgba(255,255,255,1);
 				stroke-width: 0.1px;
-				z-index: 999;
 			}
 	</style>
 </head>
@@ -247,10 +247,12 @@
 	}
 	
 	function initBody() {
-		// TODO, all other calcs
-		hexapod.state.body.x = parseFloat(hexapod.config.body.x);
-		hexapod.state.body.y = parseFloat(hexapod.config.body.y);
-		hexapod.state.body.z = parseFloat(hexapod.config.body.z);
+		hexapod.state.body.x    = parseFloat(hexapod.config.body.x);
+		hexapod.state.body.y    = parseFloat(hexapod.config.body.y);
+		hexapod.state.body.z    = parseFloat(hexapod.config.body.z);
+		hexapod.state.body.AngX = parseFloat(hexapod.config.body.AngX);
+		hexapod.state.body.AngY = parseFloat(hexapod.config.body.AngY);
+		hexapod.state.body.AngZ = parseFloat(hexapod.config.body.AngZ);
 	}
 	
 	function initLeg(ID) {
@@ -285,11 +287,9 @@
 	}
 	
 	function updateBody() {
-		// TODO!!!
-		// And don't forgot about body angle!
 		for (var i = 0; i < hexapod.legs.length; i++) {
-			hexapod.state.body[hexapod.legs[i]].x = hexapod.state.body.x + hexapod.config.body[hexapod.legs[i]].x;
-			hexapod.state.body[hexapod.legs[i]].y = hexapod.state.body.y + hexapod.config.body[hexapod.legs[i]].y;
+			hexapod.state.body[hexapod.legs[i]].x = hexapod.state.body.x + hexapod.config.body[hexapod.legs[i]].x*Math.cos(_deg2rad(hexapod.state.body.AngZ)) - hexapod.config.body[hexapod.legs[i]].y*Math.sin(_deg2rad(hexapod.state.body.AngZ));
+			hexapod.state.body[hexapod.legs[i]].y = hexapod.state.body.y + hexapod.config.body[hexapod.legs[i]].x*Math.sin(_deg2rad(hexapod.state.body.AngZ)) + hexapod.config.body[hexapod.legs[i]].y*Math.cos(_deg2rad(hexapod.state.body.AngZ));
 		}
 	}
 
@@ -357,7 +357,9 @@
 		}
 	}
 	
+	
 	initHexa();
+
 </script>
 </body>
 </html>
