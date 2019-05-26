@@ -176,18 +176,18 @@
 			gait: {
 				type: "RIPPLE",	// balance between stable (4 legs on the ground) and speed (not so slow as wave 1 by 1, bu not so fast as with tripod)
 				sequence: [
-					{ "LF": 0, "LM": 0, "LB": 1, "RF": 0, "RM": 1, "RB": 0 },	// 0 - on the ground (stance), 1 - in the air (swing)
-					{ "LF": 0, "LM": 0, "LB": 1, "RF": 1, "RM": 0, "RB": 0 },
-					{ "LF": 0, "LM": 1, "LB": 0, "RF": 1, "RM": 0, "RB": 0 },
-					{ "LF": 0, "LM": 1, "LB": 0, "RF": 0, "RM": 0, "RB": 1 },
-					{ "LF": 1, "LM": 0, "LB": 0, "RF": 0, "RM": 0, "RB": 1 },
-					{ "LF": 1, "LM": 0, "LB": 0, "RF": 0, "RM": 1, "RB": 0 },
-					{ "LF": 0, "LM": 0, "LB": 1, "RF": 0, "RM": 1, "RB": 0 },
-					{ "LF": 0, "LM": 0, "LB": 1, "RF": 1, "RM": 0, "RB": 0 },
-					{ "LF": 0, "LM": 1, "LB": 0, "RF": 1, "RM": 0, "RB": 0 },
-					{ "LF": 0, "LM": 1, "LB": 0, "RF": 0, "RM": 0, "RB": 1 },
-					{ "LF": 1, "LM": 0, "LB": 0, "RF": 0, "RM": 0, "RB": 1 },
-					{ "LF": 1, "LM": 0, "LB": 0, "RF": 0, "RM": 1, "RB": 0 }
+					{ "LF":  0, "LM":  0, "LB":  2, "RF":  0, "RM": -1, "RB":  0 },	// 0 - on the ground (stance), >0 - in the air (swing) number of steps before ground, -1 to the ground
+					{ "LF":  0, "LM":  0, "LB": -1, "RF":  2, "RM":  0, "RB":  0 },
+					{ "LF":  0, "LM":  2, "LB":  0, "RF": -1, "RM":  0, "RB":  0 },
+					{ "LF":  0, "LM": -1, "LB":  0, "RF":  0, "RM":  0, "RB":  2 },
+					{ "LF":  2, "LM":  0, "LB":  0, "RF":  0, "RM":  0, "RB": -1 },
+					{ "LF": -1, "LM":  0, "LB":  0, "RF":  0, "RM":  2, "RB":  0 },
+					{ "LF":  0, "LM":  0, "LB":  2, "RF":  0, "RM": -1, "RB":  0 },
+					{ "LF":  0, "LM":  0, "LB": -1, "RF":  2, "RM":  0, "RB":  0 },
+					{ "LF":  0, "LM":  2, "LB":  0, "RF": -1, "RM":  0, "RB":  0 },
+					{ "LF":  0, "LM": -1, "LB":  0, "RF":  0, "RM":  0, "RB":  2 },
+					{ "LF":  2, "LM":  0, "LB":  0, "RF":  0, "RM":  0, "RB": -1 },
+					{ "LF": -1, "LM":  0, "LB":  0, "RF":  0, "RM":  2, "RB":  0 }
 				]
 			}
 		};
@@ -399,9 +399,18 @@
 			angle: false,
 			steps: false,
 			current_step: false,
-			gait_steps: hexapod.config.gait.sequence.length,
-			current_gait_step: 0,	// should not be reseted!!!
-			step_deplay: 100	// pretent that this is servo move delay (ms) for one of the gait step (later this should be triggered by sensors on the end of the legs)
+			gaitsteps: hexapod.config.gait.sequence.length,
+			gait_z:1,
+			current_gaitstep: 0,	// should not be reseted!!!
+			step_deplay: 100,	// pretent that this is servo move delay (ms) for one of the gait step (later this should be triggered by sensors on the end of the legs)
+			leg: {
+				LF: { inProgress: false, gaitstep_dx: false, gaitstep_dy: false, gaitstep_dz: false, gaitstep_dAngC: false },
+				LM: { inProgress: false, gaitstep_dx: false, gaitstep_dy: false, gaitstep_dz: false, gaitstep_dAngC: false },
+				LB: { inProgress: false, gaitstep_dx: false, gaitstep_dy: false, gaitstep_dz: false, gaitstep_dAngC: false },
+				RF: { inProgress: false, gaitstep_dx: false, gaitstep_dy: false, gaitstep_dz: false, gaitstep_dAngC: false },
+				RM: { inProgress: false, gaitstep_dx: false, gaitstep_dy: false, gaitstep_dz: false, gaitstep_dAngC: false },
+				RB: { inProgress: false, gaitstep_dx: false, gaitstep_dy: false, gaitstep_dz: false, gaitstep_dAngC: false }
+			}
 		};
 		
 	function moveTo (x,y) {
@@ -422,28 +431,65 @@
 		moveToNext();
 	}
 	
+	function movetoNextGaitUpdateLeg(ID) {
+		if (hexapod.dmove.leg[ID].inProgress) {
+			hexapod.state.leg[ID].x += hexapod.dmove.leg[ID].dx;
+			hexapod.state.leg[ID].y += hexapod.dmove.leg[ID].dy;
+			hexapod.state.leg[ID].z += hexapod.dmove.leg[ID].dz;
+		}
+	}
+	
+	function moveToNextGait() {
+		for (var i = 0; i < hexapod.legs.length; i++) {
+			var ID = hexapod.legs[i];
+			var leg_state = hexapod.config.gait.sequence[parseInt(hexapod.dmove.current_gaitstep)][ID];
+			if (leg_state == -1) {
+				hexapod.dmove.leg[ID].dz = -hexapod.dmove.gait_z;	// leg to ground (if flat surface)
+				movetoNextGaitUpdateLeg(ID);
+				//console.log("DBG", hexapod.legs[i], "leg to ground ", hexapod.dmove.gait_z);
+				hexapod.dmove.leg[ID].inProgress = false;
+			} else if (leg_state > 0) {
+				if (!hexapod.dmove.leg[ID].inProgress) {
+					hexapod.dmove.leg[ID].inProgress = true;
+					hexapod.dmove.leg[ID].dx = hexapod.dmove.step_dx/(leg_state*2);	// looks like it will be fail, as here I'm expect that 1 gait = step DX... is it true??? looks like true... have no idea =)
+					hexapod.dmove.leg[ID].dy = hexapod.dmove.step_dy/(leg_state*2);
+					hexapod.dmove.leg[ID].dz = hexapod.dmove.gait_z;	// leg to air (if flat surface)
+				} else {
+					hexapod.dmove.leg[ID].dz = 0;	// no need to move leg
+				}
+				
+				// OK, this should move leg
+				movetoNextGaitUpdateLeg(ID);
+				
+				//console.log("DBG", hexapod.legs[i], "leg to air for", leg_state, "steps", hexapod.dmove.gait_z);
+			} else {
+				// nothing to do with leg, it should follow previows position
+			}
+		}
+		hexapod.dmove.current_gaitstep++;	// TODO, +0.0001 for super smooth
+		if (hexapod.dmove.current_gaitstep >= hexapod.dmove.gaitsteps) {
+			hexapod.dmove.current_gaitstep = 0;
+			hexapod.dmove.current_step++;
+			console.log("nextStep");
+		}
+	}
+	
 	function moveToNext() {
 		hexapod.dmove.inProgress = true;
-		console.log("MOVE body", hexapod.dmove, hexapod.state.body);
-		hexapod.state.body.x += hexapod.dmove.step_dx/hexapod.dmove.gait_steps;
-		hexapod.state.body.y += hexapod.dmove.step_dy/hexapod.dmove.gait_steps;
-		hexapod.state.body.AngZ += hexapod.dmove.step_dAngZ/hexapod.dmove.gait_steps;
+		hexapod.state.body.x += hexapod.dmove.step_dx/hexapod.dmove.gaitsteps;
+		hexapod.state.body.y += hexapod.dmove.step_dy/hexapod.dmove.gaitsteps;
+		hexapod.state.body.AngZ += hexapod.dmove.step_dAngZ/hexapod.dmove.gaitsteps;	// TODO, move faster and set to 0 as soon as angle reached
 		
 		// TODO recalculate legs XYZ
 		// TODO move
 		
 		updateBody();
+		moveToNextGait();
 		updateLeg();
 
-		console.log("MOVE body", hexapod.dmove, hexapod.state.body);
+		console.log("MOVE body", hexapod.state.body);
 		updateImage();
 		
-		hexapod.dmove.current_gait_step++;
-		if (hexapod.dmove.current_gait_step >= hexapod.dmove.gait_steps) {
-			hexapod.dmove.current_gait_step = 0;
-			hexapod.dmove.current_step++;
-			console.log("nextStep");
-		}
 		// TODO stop also on point archive, as it should be done faster then step
 		if (hexapod.dmove.current_step >= hexapod.dmove.steps) {
 			// TODO zero current position, e.g. x,y,z -> 0,0,0, the same for angles
