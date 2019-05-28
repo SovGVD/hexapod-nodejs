@@ -160,7 +160,7 @@
 	hexapod.config = {
 			body: {
 				x: 0, y: 0, z: 3,	// z - distance from ground
-				AngX: 0, AngY: 0, AngZ: 0,
+				AngX: 0, AngY: 0, AngZ: 45,
 				LF:  { x:  15, y:  15, z: 0 },
 				LM:  { x:   0, y:  15, z: 0 },
 				LB:  { x: -15, y:  15, z: 0 },
@@ -286,8 +286,12 @@
 		// init leg XYZ based on init AngC and default length od leg
 		hexapod.state.leg[ID].z = -hexapod.state.body.z;	// init leg D from ground;
 		var tmp = _rad2deg(Math.atan2((hexapod.config.body[ID].y - hexapod.config.body.y), (hexapod.config.body[ID].x - hexapod.config.body.x)));
-		hexapod.state.leg[ID].x = Math.cos(_deg2rad(hexapod.config.leg[ID].AngC.default+tmp)) * hexapod.config.leg[ID].L.default + hexapod.config.body[ID].x;
-		hexapod.state.leg[ID].y = Math.sin(_deg2rad(hexapod.config.leg[ID].AngC.default+tmp)) * hexapod.config.leg[ID].L.default + hexapod.config.body[ID].y;
+		var _x = Math.cos(_deg2rad(hexapod.config.leg[ID].AngC.default+tmp)) * hexapod.config.leg[ID].L.default + hexapod.config.body[ID].x;
+		var _y = Math.sin(_deg2rad(hexapod.config.leg[ID].AngC.default+tmp)) * hexapod.config.leg[ID].L.default + hexapod.config.body[ID].y;
+
+		var _ang = _deg2rad(hexapod.config.body.AngZ);
+		hexapod.state.leg[ID].x = (_x - hexapod.config.body.x)*Math.cos(_ang) - (_y - hexapod.config.body.y)*Math.sin(_ang) + hexapod.config.body.x;
+		hexapod.state.leg[ID].y = (_x - hexapod.config.body.x)*Math.sin(_ang) + (_y - hexapod.config.body.y)*Math.cos(_ang) + hexapod.config.body.y;
 	}
 	
 	function initState() {
@@ -491,8 +495,8 @@
 		// TODO comment until leg calcutae without angle
 		//hexapod.state.body.AngZ += hexapod.dmove.step_dAngZ/hexapod.dmove.gaitsteps;	// TODO, move faster and set to 0 as soon as angle reached
 		
-		updateBody();
 		moveToNextGait();
+		updateBody();
 		updateLeg();
 
 		console.log("MOVE body", hexapod.state.body);
