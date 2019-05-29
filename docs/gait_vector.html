@@ -7,10 +7,13 @@
 				stroke: black;
 				stroke-linecap: round;
 			}
+			.on_the_ground {
+				stroke-width: 10px;
+			}
 			#hexapod_body {
 				fill: green;
 				stroke: black;
-				stroke-width: 0.5px;
+				stroke-width: 1px;
 			}
 
 			#hexapod_leg_LF_C { stroke: rgba(255,0,0,1); }
@@ -39,16 +42,22 @@
 			#hexapod_leg_RB_T { stroke: rgba(0,255,0,1); }
 			
 			.svg_text_dbg {
-				font: 2.5px sans-serif;
+				font: 20px sans-serif;
 				fill: rgba(0,0,0,1);
 				stroke: rgba(255,255,255,1);
 				stroke-width: 0.1px;
+			}
+			
+			.extected_leg_position {
+				stroke-width: 1px;
+				stroke: rgba(0,0,0,0.7);
+				
 			}
 	</style>
 </head>
 <body>
 <svg width="600" height="600" id="svgimg">
-	<g id="hexapod" transform="translate(300,300) scale(4)">
+	<g id="hexapod" transform="translate(300,300) scale(0.5)">
 		<polygon points="0,0 1,1 2,2 3,3 4,4 5,5" id="hexapod_body" />
 		
 		<line x1="0" y1="0" x2="0" y2="0" id="hexapod_leg_LF_C" /><text x="0" y="0" id="hexapod_leg_LF_C_DBG" class="svg_text_dbg"></text>
@@ -74,6 +83,13 @@
 		<line x1="0" y1="0" x2="0" y2="0" id="hexapod_leg_RB_C" /><text x="0" y="0" id="hexapod_leg_RB_C_DBG" class="svg_text_dbg"></text>
 		<line x1="0" y1="0" x2="0" y2="0" id="hexapod_leg_RB_F" /><text x="0" y="0" id="hexapod_leg_RB_F_DBG" class="svg_text_dbg"></text>
 		<line x1="0" y1="0" x2="0" y2="0" id="hexapod_leg_RB_T" /><text x="0" y="0" id="hexapod_leg_RB_T_DBG" class="svg_text_dbg"></text>
+		
+		<line x1="0" y1="0" x2="0" y2="0" id="hexapod_leg_LF_expected" class="extected_leg_position" />
+		<line x1="0" y1="0" x2="0" y2="0" id="hexapod_leg_LM_expected" class="extected_leg_position" />
+		<line x1="0" y1="0" x2="0" y2="0" id="hexapod_leg_LB_expected" class="extected_leg_position" />
+		<line x1="0" y1="0" x2="0" y2="0" id="hexapod_leg_RF_expected" class="extected_leg_position" />
+		<line x1="0" y1="0" x2="0" y2="0" id="hexapod_leg_RM_expected" class="extected_leg_position" />
+		<line x1="0" y1="0" x2="0" y2="0" id="hexapod_leg_RB_expected" class="extected_leg_position" />
 	</g>
 </svg>
 <script>
@@ -122,31 +138,37 @@
 					C: G('hexapod_leg_LF_C_DBG'),
 					F: G('hexapod_leg_LF_F_DBG'),
 					T: G('hexapod_leg_LF_T_DBG'),
+					expected: G('hexapod_leg_LF_expected'),
 				},
 				LM: {
 					C: G('hexapod_leg_LM_C_DBG'),
 					F: G('hexapod_leg_LM_F_DBG'),
 					T: G('hexapod_leg_LM_T_DBG'),
+					expected: G('hexapod_leg_LM_expected'),
 				},
 				LB: {
 					C: G('hexapod_leg_LB_C_DBG'),
 					F: G('hexapod_leg_LB_F_DBG'),
 					T: G('hexapod_leg_LB_T_DBG'),
+					expected: G('hexapod_leg_LB_expected'),
 				},
 				RF: {
 					C: G('hexapod_leg_RF_C_DBG'),
 					F: G('hexapod_leg_RF_F_DBG'),
 					T: G('hexapod_leg_RF_T_DBG'),
+					expected: G('hexapod_leg_RF_expected'),
 				},
 				RM: {
 					C: G('hexapod_leg_RM_C_DBG'),
 					F: G('hexapod_leg_RM_F_DBG'),
 					T: G('hexapod_leg_RM_T_DBG'),
+					expected: G('hexapod_leg_RM_expected'),
 				},
 				RB: {
 					C: G('hexapod_leg_RB_C_DBG'),
 					F: G('hexapod_leg_RB_F_DBG'),
 					T: G('hexapod_leg_RB_T_DBG'),
+					expected: G('hexapod_leg_RB_expected'),
 				},
 			}
 		}
@@ -156,23 +178,40 @@
 	hexapod.legs = ["LF", "LM", "LB", "RF", "RM", "RB"];
 	hexapod.config = {
 			body: {
-				x: 0, y: 0, z: 3,	// z - distance from ground
-				AngX: 0, AngY: 0, AngZ: 0,
-				LF:  { x:  15, y:  15, z: 0 },
-				LM:  { x:   0, y:  15, z: 0 },
-				LB:  { x: -15, y:  15, z: 0 },
-				RF:  { x:  15, y: -15, z: 0 },
-				RM:  { x:   0, y: -15, z: 0 },
-				RB:  { x: -15, y: -15, z: 0 }
+				x: 0, y: 0, z: 50,	// z - distance from ground
+				AngX: 0, AngY: 0, AngZ: 00,
+				LF:  { x:  75, y:  40, z: 0 },
+				LM:  { x:   0, y:  65, z: 0 },
+				LB:  { x: -75, y:  40, z: 0 },
+				RF:  { x:  75, y: -40, z: 0 },
+				RM:  { x:   0, y: -65, z: 0 },
+				RB:  { x: -75, y: -40, z: 0 }
 			},
 			leg: {
-				LF: { AngC: 0, Lc: 2, Lf: 4, Lt: 8, L: { min: 4, max: 12, default: 12 } },	// TODO min and max!!! AngF (0...90)
-				LM: { AngC: 0, Lc: 2, Lf: 4, Lt: 8, L: { min: 4, max: 12, default: 12 } },
-				LB: { AngC: 0, Lc: 2, Lf: 4, Lt: 8, L: { min: 4, max: 12, default: 12 } },
-				RF: { AngC: 0, Lc: 2, Lf: 4, Lt: 8, L: { min: 4, max: 12, default: 12 } },
-				RM: { AngC: 0, Lc: 2, Lf: 4, Lt: 8, L: { min: 4, max: 12, default: 12 } },
-				RB: { AngC: 0, Lc: 2, Lf: 4, Lt: 8, L: { min: 4, max: 12, default: 12 } }
+				LF: { AngC: { min: -50, max: 50, default: 0 }, Lc: 30, Lf: 85, Lt: 120, L: { min: 40, max: 200, default: 100 } },	// TODO min and max!!! AngF (0...90)
+				LM: { AngC: { min: -50, max: 50, default: 0 }, Lc: 30, Lf: 85, Lt: 120, L: { min: 40, max: 200, default: 100 } },
+				LB: { AngC: { min: -50, max: 50, default: 0 }, Lc: 30, Lf: 85, Lt: 120, L: { min: 40, max: 200, default: 100 } },
+				RF: { AngC: { min: -50, max: 50, default: 0 }, Lc: 30, Lf: 85, Lt: 120, L: { min: 40, max: 200, default: 100 } },
+				RM: { AngC: { min: -50, max: 50, default: 0 }, Lc: 30, Lf: 85, Lt: 120, L: { min: 40, max: 200, default: 100 } },
+				RB: { AngC: { min: -50, max: 50, default: 0 }, Lc: 30, Lf: 85, Lt: 120, L: { min: 40, max: 200, default: 100 } }
 			},
+			gait: {
+				type: "RIPPLE",	// balance between stable (4 legs on the ground) and speed (not so slow as wave 1 by 1, bu not so fast as with tripod)
+				sequence: [
+					{ "LF":  0, "LM":  0, "LB":  2, "RF":  0, "RM": -1, "RB":  0 },	// 0  - on the ground (stance), 
+					{ "LF":  0, "LM":  0, "LB": -1, "RF":  2, "RM":  0, "RB":  0 }, // >0 - in the air (swing) number of steps before ground,
+					{ "LF":  0, "LM":  2, "LB":  0, "RF": -1, "RM":  0, "RB":  0 }, // -1 - on the way to the ground (any step after), probably just ignore
+					{ "LF":  0, "LM": -1, "LB":  0, "RF":  0, "RM":  0, "RB":  2 },
+					{ "LF":  2, "LM":  0, "LB":  0, "RF":  0, "RM":  0, "RB": -1 },
+					{ "LF": -1, "LM":  0, "LB":  0, "RF":  0, "RM":  2, "RB":  0 },
+					{ "LF":  0, "LM":  0, "LB":  2, "RF":  0, "RM": -1, "RB":  0 },
+					{ "LF":  0, "LM":  0, "LB": -1, "RF":  2, "RM":  0, "RB":  0 },
+					{ "LF":  0, "LM":  2, "LB":  0, "RF": -1, "RM":  0, "RB":  0 },
+					{ "LF":  0, "LM": -1, "LB":  0, "RF":  0, "RM":  0, "RB":  2 },
+					{ "LF":  2, "LM":  0, "LB":  0, "RF":  0, "RM":  0, "RB": -1 },
+					{ "LF": -1, "LM":  0, "LB":  0, "RF":  0, "RM":  2, "RB":  0 }
+				]
+			}
 		};
 	hexapod.const = {
 		leg: {
@@ -187,6 +226,7 @@
 	hexapod.preState = false;
 	hexapod.state = {
 			body: {
+				x0: 0, y0: 0, z0:0,	// inititial position, TODO update after gait*steps finished
 				x: 0, y: 0, z: 0, 
 				AngX: 0, AngY: 0, AngZ: 0,
 				LF:  { x: false, y: false, z: false },
@@ -206,6 +246,9 @@
 			}
 		};
 	function legAng (ID) {
+		// TODO, precheck leg mimits:
+		// 1. create 3D polygon of max/min available positions, including angles limits
+		// 2. check if x1,y1,z1 in that polygon
 		hexapod.state.leg[ID].L = Math.sqrt(Math.pow(hexapod.state.leg[ID].x - hexapod.state.body[ID].x, 2) + Math.pow(hexapod.state.leg[ID].y - hexapod.state.body[ID].y, 2));
 
 		/*
@@ -214,6 +257,7 @@
 								
 		*/
 		hexapod.state.leg[ID].AngC = _rad2deg(Math.atan2((hexapod.state.leg[ID].y - hexapod.state.body[ID].y), (hexapod.state.leg[ID].x - hexapod.state.body[ID].x)) - hexapod.const.leg[ID].AngCRad);	// -90...90
+		hexapod.state.leg[ID].AngC -= hexapod.state.body.AngZ;
 		if (hexapod.state.leg[ID].AngC > 180) hexapod.state.leg[ID].AngC -= 360;
 		/*
 								   Lf^2 + (D^2 + (L - Lc)^2) - Lt^2       PI             L - Lc
@@ -253,21 +297,23 @@
 		hexapod.state.body.AngX = parseFloat(hexapod.config.body.AngX);
 		hexapod.state.body.AngY = parseFloat(hexapod.config.body.AngY);
 		hexapod.state.body.AngZ = parseFloat(hexapod.config.body.AngZ);
+
+		for (var i = 0; i < hexapod.legs.length; i++) {
+			initLeg(hexapod.legs[i]);
+		}
+
 	}
 	
 	function initLeg(ID) {
 		// init leg XYZ based on init AngC and default length od leg
 		hexapod.state.leg[ID].z = -hexapod.state.body.z;	// init leg D from ground;
 		var tmp = _rad2deg(Math.atan2((hexapod.config.body[ID].y - hexapod.config.body.y), (hexapod.config.body[ID].x - hexapod.config.body.x)));
-		hexapod.state.leg[ID].x = Math.cos(_deg2rad(hexapod.config.leg[ID].AngC+tmp)) * hexapod.config.leg[ID].L.default + hexapod.config.body[ID].x;
-		hexapod.state.leg[ID].y = Math.sin(_deg2rad(hexapod.config.leg[ID].AngC+tmp)) * hexapod.config.leg[ID].L.default + hexapod.config.body[ID].y;
+		hexapod.state.leg[ID].x = Math.cos(_deg2rad(hexapod.config.leg[ID].AngC.default+tmp)) * hexapod.config.leg[ID].L.default + hexapod.config.body[ID].x;
+		hexapod.state.leg[ID].y = Math.sin(_deg2rad(hexapod.config.leg[ID].AngC.default+tmp)) * hexapod.config.leg[ID].L.default + hexapod.config.body[ID].y;
 	}
 	
 	function initState() {
 		initBody();
-		for (var i = 0; i < hexapod.legs.length; i++) {
-			initLeg(hexapod.legs[i]);
-		}
 	}
 	
 	function initConst() {
@@ -278,6 +324,7 @@
 			hexapod.const.leg[hexapod.legs[i]].LtLf = hexapod.config.leg[hexapod.legs[i]].Lt * hexapod.config.leg[hexapod.legs[i]].Lf;
 			hexapod.const.leg[hexapod.legs[i]].AngCRad = Math.atan2((hexapod.config.body[hexapod.legs[i]].y - hexapod.config.body.y), (hexapod.config.body[hexapod.legs[i]].x - hexapod.config.body.x));
 		}
+		// TODO init min/max 3d polygon for legs
 	}
 	
 	function initHexa() {
@@ -285,9 +332,48 @@
 		initState();
 		update();
 		updateImage();
+		
+		setInterval(move, 1);
+	}
+	
+	function preCalc(vector,steps_in_future,ID) {
+		// TODO separate body and legs, there is too much calulcations for nothing *6
+		// return hexapod expected state after steps_in_future
+		var futurePosition = {
+				body: {
+					x: false, y: false, AngZ: false,
+					LF: {x: false, y: false},
+					LM: {x: false, y: false},
+					LB: {x: false, y: false},
+					RF: {x: false, y: false},
+					RM: {x: false, y: false},
+					RB: {x: false, y: false},
+				},
+				leg: {
+					LF: {x: false, y: false},
+					LM: {x: false, y: false},
+					LB: {x: false, y: false},
+					RF: {x: false, y: false},
+					RM: {x: false, y: false},
+					RB: {x: false, y: false},					
+				}
+			};
+			futurePosition.body.AngZ = _degNorm(hexapod.state.body.AngZ + steps_in_future*vector.AngZ);
+			futurePosition.body.x = hexapod.state.body.x + steps_in_future*vector.x;
+			futurePosition.body.y = hexapod.state.body.y + steps_in_future*vector.y;
+			
+			//console.log("Calc future", steps_in_future, futurePosition.body);
+			
+			futurePosition.body[ID].x = futurePosition.body.x + hexapod.config.body[ID].x*Math.cos(_deg2rad(futurePosition.body.AngZ)) - hexapod.config.body[ID].y*Math.sin(_deg2rad(futurePosition.body.AngZ));
+			futurePosition.body[ID].y = futurePosition.body.y + hexapod.config.body[ID].x*Math.sin(_deg2rad(futurePosition.body.AngZ)) + hexapod.config.body[ID].y*Math.cos(_deg2rad(futurePosition.body.AngZ));
+			var tmp  = _rad2deg(Math.atan2((hexapod.config.body[ID].y - hexapod.config.body.y), (hexapod.config.body[ID].x - hexapod.config.body.x)));	// TODO const!
+			futurePosition.leg[ID].x = Math.cos(_deg2rad(hexapod.config.leg[ID].AngC.default+tmp+futurePosition.body.AngZ)) * hexapod.config.leg[ID].L.default + futurePosition.body[ID].x;
+			futurePosition.leg[ID].y = Math.sin(_deg2rad(hexapod.config.leg[ID].AngC.default+tmp+futurePosition.body.AngZ)) * hexapod.config.leg[ID].L.default + futurePosition.body[ID].y;
+		return futurePosition;
 	}
 	
 	function updateBody() {
+		// init body position and angle
 		for (var i = 0; i < hexapod.legs.length; i++) {
 			hexapod.state.body[hexapod.legs[i]].x = hexapod.state.body.x + hexapod.config.body[hexapod.legs[i]].x*Math.cos(_deg2rad(hexapod.state.body.AngZ)) - hexapod.config.body[hexapod.legs[i]].y*Math.sin(_deg2rad(hexapod.state.body.AngZ));
 			hexapod.state.body[hexapod.legs[i]].y = hexapod.state.body.y + hexapod.config.body[hexapod.legs[i]].x*Math.sin(_deg2rad(hexapod.state.body.AngZ)) + hexapod.config.body[hexapod.legs[i]].y*Math.cos(_deg2rad(hexapod.state.body.AngZ));
@@ -314,11 +400,16 @@
 	}
 	
 	function updateImageAngDisplay(deg) {
-		return (Math.round(deg*10)/10)+"&deg;"
+		return (Math.round(deg*10)/10)+"&deg;";
 	}
 	function updateImageLeg(ID) {
+		hexapod_image_objects.dbg.leg[ID].expected.x1.baseVal.value = hexapod.state.body[ID].x;
+		hexapod_image_objects.dbg.leg[ID].expected.y1.baseVal.value = hexapod.state.body[ID].y * -1;
+		hexapod_image_objects.dbg.leg[ID].expected.x2.baseVal.value = hexapod.state.leg[ID].x;
+		hexapod_image_objects.dbg.leg[ID].expected.y2.baseVal.value = hexapod.state.leg[ID].y * -1;
+
 		// calc X,Y,Z by angles
-		var tmp = hexapod.const.leg[ID].AngCRad;
+		var tmp = hexapod.const.leg[ID].AngCRad + _deg2rad(hexapod.state.body.AngZ);
 		hexapod_image_objects.leg[ID].C.x1.baseVal.value = hexapod.state.body[ID].x;
 		hexapod_image_objects.leg[ID].C.y1.baseVal.value = hexapod.state.body[ID].y * -1;
 		hexapod_image_objects.leg[ID].C.x2.baseVal.value = hexapod.config.leg[ID].Lc * Math.cos(_deg2rad(hexapod.state.leg[ID].AngC)+tmp) + hexapod.state.body[ID].x;
@@ -346,6 +437,11 @@
 		var tmpL = hexapod.state.leg[ID].L - tmpL - hexapod.config.leg[ID].Lc;
 		hexapod_image_objects.leg[ID].T.x2.baseVal.value = tmpL * Math.cos(_deg2rad(hexapod.state.leg[ID].AngC)+tmp) + hexapod_image_objects.leg[ID].F.x2.baseVal.value;
 		hexapod_image_objects.leg[ID].T.y2.baseVal.value = (tmpL * Math.sin(_deg2rad(hexapod.state.leg[ID].AngC)+tmp) * -1 + hexapod_image_objects.leg[ID].F.y2.baseVal.value);
+		if (hexapod.state.leg[ID].z == -hexapod.state.body.z) {
+			hexapod_image_objects.leg[ID].T.className.baseVal = 'on_the_ground';
+		} else {
+			hexapod_image_objects.leg[ID].T.className.baseVal = '';
+		}
 		
 	}
 	
@@ -354,10 +450,198 @@
 		updateImageBody();
 		for (var i = 0; i < hexapod.legs.length; i++) {
 			//console.log("updateImageLeg", hexapod.legs[i]);
-			updateImageLeg(hexapod.legs[i]);
+			try {
+				updateImageLeg(hexapod.legs[i]);
+			} catch (e) {
+				console.log("ERROR");
+			}
 		}
 	}
 	
+	
+	
+	hexapod.dmove = {
+			inProgress: false,
+			subgait_steps: 50,
+			distance_per_step: false,
+			distance: false,
+			dx: false,	// delta of full move
+			dy: false,
+			dAngZ: false,
+			angle: false,
+			steps: false,
+			current_step: false,
+			gaitsteps: hexapod.config.gait.sequence.length,
+			gait_z:1,
+			current_gaitstep: 0,	// should not be reseted!!!
+			step_deplay: 100,	// pretent that this is servo move delay (ms) for one of the gait step (later this should be triggered by sensors on the end of the legs)
+			leg: {
+				LF: { inProgress: false, gaitstep_dx: false, gaitstep_dy: false, gaitstep_dz: false, subgaitstep: false },	// use dz as porabolic max (as simplest way at that moment)
+				LM: { inProgress: false, gaitstep_dx: false, gaitstep_dy: false, gaitstep_dz: false, subgaitstep: false },
+				LB: { inProgress: false, gaitstep_dx: false, gaitstep_dy: false, gaitstep_dz: false, subgaitstep: false },
+				RF: { inProgress: false, gaitstep_dx: false, gaitstep_dy: false, gaitstep_dz: false, subgaitstep: false },
+				RM: { inProgress: false, gaitstep_dx: false, gaitstep_dy: false, gaitstep_dz: false, subgaitstep: false },
+				RB: { inProgress: false, gaitstep_dx: false, gaitstep_dy: false, gaitstep_dz: false, subgaitstep: false }
+			}
+		};
+		
+	function move() {
+		hexapod.dmove.dAngZ = parseFloat(moveData.AngZ);
+
+		hexapod.dmove.dx = parseFloat(moveData.x);
+		hexapod.dmove.dy = parseFloat(moveData.y);
+		if (hexapod.dmove.dx !=0 || hexapod.dmove.dy !=0 || hexapod.dmove.dAngZ !=0) {
+			hexapod.dmove.inProgress = true;
+			//console.log("DBG", hexapod.dmove.dx, hexapod.dmove.dy);
+			moveToNext();
+		} else {
+			hexapod.dmove.inProgress = false;
+		}
+	}
+	
+	
+	function movetoNextGaitUpdateLeg(ID) {
+		if (hexapod.dmove.leg[ID].inProgress) {
+			hexapod.state.leg[ID].x += hexapod.dmove.leg[ID].dx;
+			hexapod.state.leg[ID].y += hexapod.dmove.leg[ID].dy;
+			//hexapod.state.leg[ID].z += hexapod.dmove.leg[ID].dz;
+		}
+	}
+	
+	function moveToNextGait() {
+		for (var i = 0; i < hexapod.legs.length; i++) {
+			var ID = hexapod.legs[i];
+			
+
+			var leg_steps = hexapod.config.gait.sequence[parseInt(hexapod.dmove.current_gaitstep)][ID];
+			if (hexapod.dmove.leg[ID].subgaitstep > 0) {
+				hexapod.dmove.leg[ID].subgaitstep--;
+				movetoNextGaitUpdateLeg(ID);
+			} else {
+				hexapod.dmove.leg[ID].subgaitstep = false;
+				hexapod.dmove.leg[ID].inProgress = false;	// looks like the same
+				hexapod.state.leg[ID].z = -hexapod.state.body.z;
+			}
+
+			if (leg_steps > 0) {
+				if (!hexapod.dmove.leg[ID].inProgress) {
+					hexapod.dmove.leg[ID].inProgress = true;
+					hexapod.dmove.leg[ID].subgaitstep = parseInt(hexapod.dmove.subgait_steps) * leg_steps;
+					hexapod.state.leg[ID].z = hexapod.state.body.z;// TODO TMP, this should be the parabolic
+					var tmp = preCalc(moveData,hexapod.dmove.gaitsteps, ID);
+
+					hexapod.dmove.leg[ID].dx = (tmp.leg[ID].x - hexapod.state.leg[ID].x) / hexapod.dmove.leg[ID].subgaitstep;
+					hexapod.dmove.leg[ID].dy = (tmp.leg[ID].y - hexapod.state.leg[ID].y) / hexapod.dmove.leg[ID].subgaitstep;
+					hexapod.dmove.leg[ID].dz = hexapod.dmove.gait_z;	// max of parabpolic move (a the hexapod.dmove.leg[ID].subgaitstep/2)
+				}				
+			}
+
+		}
+		hexapod.dmove.current_gaitstep += 1/hexapod.dmove.subgait_steps;	// TODO calc ones
+		if (hexapod.dmove.current_gaitstep >= hexapod.dmove.gaitsteps) {
+			hexapod.dmove.current_gaitstep = 0;
+			hexapod.dmove.current_step++;
+			//console.log("nextStep");
+		}
+	}
+	
+	function moveToNext() {
+		hexapod.dmove.inProgress = true;
+		hexapod.state.body.AngZ += hexapod.dmove.dAngZ/hexapod.dmove.gaitsteps;
+		hexapod.state.body.AngZ = _degNorm(hexapod.state.body.AngZ);
+
+		hexapod.state.body.x += (hexapod.dmove.dx/hexapod.dmove.gaitsteps)*Math.cos(_deg2rad(hexapod.state.body.AngZ)) - (hexapod.dmove.dy/hexapod.dmove.gaitsteps)*Math.sin(_deg2rad(hexapod.state.body.AngZ));
+		hexapod.state.body.y += (hexapod.dmove.dx/hexapod.dmove.gaitsteps)*Math.sin(_deg2rad(hexapod.state.body.AngZ)) + (hexapod.dmove.dy/hexapod.dmove.gaitsteps)*Math.cos(_deg2rad(hexapod.state.body.AngZ));
+		
+		moveToNextGait();
+		updateBody();
+		updateLeg();
+
+		//console.log("MOVE body", hexapod.state.body);
+		updateImage();		
+	}
+	
+	
+	// moveData with vector x,y,z + AngZ (yaw)
+	var moveData = {
+		x : 0,
+		y : 0,
+		z : 0,
+		AngZ : 0
+	};
+	
+	
+	// Keyboard
+	var kMap = { };
+	function initKeyboard() {
+		document.body.onkeydown = document.body.onkeyup = function (e) { 
+			e.preventDefault();
+			kMap[e.code] = (e.type=='keydown'?true:false); 
+			keyboardEvent(e);
+		};
+	}
+	function keyboardEvent(e) {
+		if (kMap.KeyW === true || kMap.KeyA === true || kMap.KeyS === true || kMap.KeyD === true ||
+			kMap.ArrowUp === true || kMap.ArrowDown === true || kMap.ArrowLeft === true || kMap.ArrowRight === true) {
+			
+			moveData.AngZ = -0.5*(kMap.KeyA === true?-1:(kMap.KeyD === true?1:0));
+			//stickData.throttle = speed*(kMap.KeyS === true?-1:(kMap.KeyW === true?1:0));
+			moveData.y = -(kMap.ArrowLeft === true?-1:(kMap.ArrowRight === true?1:0));
+			moveData.x = (kMap.ArrowDown === true?-1:(kMap.ArrowUp === true?1:0));			
+		} else {
+			moveData = {
+				x : 0,
+				y : 0,
+				z : 0,
+				AngZ : 0
+			};
+		}
+		return false;
+	}
+	// Gamepad
+	var gp = false;	// GamePad object
+	var gpInterval = false;
+	function initGamepad() {
+		window.addEventListener("gamepadconnected", gamepadConnectHandler);
+		window.addEventListener("gamepaddisconnected", gamepadDisconnectHandler);
+	}
+	function gamepadConnectHandler (e) {
+		gamepadAdd(e.gamepad);
+	}
+	function gamepadDisconnectHandler (e) {
+		gamepadRemove(e.gamepad);
+		moveData = {
+			x : 0,
+			y : 0,
+			z : 0,
+			AngZ : 0
+		};
+	}
+	function gamepadRemove(g) {
+		gp = false;
+	}
+	function gamepadAdd(g) {
+		initGamePadEvents();
+		gp = g;
+	}
+	function initGamePadEvents() {
+		if (gpInterval) {
+			clearInterval(gpInterval);
+			initGamePadEvents();
+		} else {
+			setInterval(function () { gamepadData() }.bind(this), 100);
+		}
+	}
+	function gamepadData() {
+		gp = navigator.getGamepads()[0];
+		moveData.AngZ = -gp.axes[0]*0.5;	// less speed of rotation TODO
+		moveData.z = -gp.axes[1];
+		moveData.y = -gp.axes[2];
+		moveData.x = -gp.axes[3];
+		//console.log("Vector", moveData);
+	}
+	initGamepad();
+	initKeyboard();
 	
 	initHexa();
 
