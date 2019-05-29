@@ -258,6 +258,7 @@
 		*/
 		hexapod.state.leg[ID].AngC = _rad2deg(Math.atan2((hexapod.state.leg[ID].y - hexapod.state.body[ID].y), (hexapod.state.leg[ID].x - hexapod.state.body[ID].x)) - hexapod.const.leg[ID].AngCRad);	// -90...90
 		hexapod.state.leg[ID].AngC -= hexapod.state.body.AngZ;
+		hexapod.state.leg[ID].AngC = _degNorm(hexapod.state.leg[ID].AngC);
 		if (hexapod.state.leg[ID].AngC > 180) hexapod.state.leg[ID].AngC -= 360;
 		/*
 								   Lf^2 + (D^2 + (L - Lc)^2) - Lt^2       PI             L - Lc
