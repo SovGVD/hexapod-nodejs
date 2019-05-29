@@ -336,7 +336,7 @@
 		setInterval(move, 1);
 	}
 	
-	function preCalc(vector,steps_in_future) {
+	function preCalc(vector,steps_in_future,ID) {
 		// TODO separate body and legs, there is too much calulcations for nothing *6
 		// return hexapod expected state after steps_in_future
 		var futurePosition = {
@@ -362,16 +362,13 @@
 			futurePosition.body.x = hexapod.state.body.x + steps_in_future*vector.x;
 			futurePosition.body.y = hexapod.state.body.y + steps_in_future*vector.y;
 			
-			console.log("Calc future", steps_in_future, futurePosition.body);
+			//console.log("Calc future", steps_in_future, futurePosition.body);
 			
-			for (var i = 0; i < hexapod.legs.length; i++) {
-				var ID = hexapod.legs[i];
-				futurePosition.body[ID].x = futurePosition.body.x + hexapod.config.body[ID].x*Math.cos(_deg2rad(futurePosition.body.AngZ)) - hexapod.config.body[ID].y*Math.sin(_deg2rad(futurePosition.body.AngZ));
-				futurePosition.body[ID].y = futurePosition.body.y + hexapod.config.body[ID].x*Math.sin(_deg2rad(futurePosition.body.AngZ)) + hexapod.config.body[ID].y*Math.cos(_deg2rad(futurePosition.body.AngZ));
-				var tmp  = _rad2deg(Math.atan2((hexapod.config.body[ID].y - hexapod.config.body.y), (hexapod.config.body[ID].x - hexapod.config.body.x)));	// TODO const!
-				futurePosition.leg[ID].x = Math.cos(_deg2rad(hexapod.config.leg[ID].AngC.default+tmp+futurePosition.body.AngZ)) * hexapod.config.leg[ID].L.default + futurePosition.body[ID].x;
-				futurePosition.leg[ID].y = Math.sin(_deg2rad(hexapod.config.leg[ID].AngC.default+tmp+futurePosition.body.AngZ)) * hexapod.config.leg[ID].L.default + futurePosition.body[ID].y;
-			}		
+			futurePosition.body[ID].x = futurePosition.body.x + hexapod.config.body[ID].x*Math.cos(_deg2rad(futurePosition.body.AngZ)) - hexapod.config.body[ID].y*Math.sin(_deg2rad(futurePosition.body.AngZ));
+			futurePosition.body[ID].y = futurePosition.body.y + hexapod.config.body[ID].x*Math.sin(_deg2rad(futurePosition.body.AngZ)) + hexapod.config.body[ID].y*Math.cos(_deg2rad(futurePosition.body.AngZ));
+			var tmp  = _rad2deg(Math.atan2((hexapod.config.body[ID].y - hexapod.config.body.y), (hexapod.config.body[ID].x - hexapod.config.body.x)));	// TODO const!
+			futurePosition.leg[ID].x = Math.cos(_deg2rad(hexapod.config.leg[ID].AngC.default+tmp+futurePosition.body.AngZ)) * hexapod.config.leg[ID].L.default + futurePosition.body[ID].x;
+			futurePosition.leg[ID].y = Math.sin(_deg2rad(hexapod.config.leg[ID].AngC.default+tmp+futurePosition.body.AngZ)) * hexapod.config.leg[ID].L.default + futurePosition.body[ID].y;
 		return futurePosition;
 	}
 	
@@ -530,8 +527,8 @@
 				if (!hexapod.dmove.leg[ID].inProgress) {
 					hexapod.dmove.leg[ID].inProgress = true;
 					hexapod.dmove.leg[ID].subgaitstep = parseInt(hexapod.dmove.subgait_steps) * leg_steps;
-					hexapod.state.leg[ID].z = hexapod.state.body.z;// TODO TMP
-					var tmp = preCalc(moveData,hexapod.dmove.gaitsteps);
+					hexapod.state.leg[ID].z = hexapod.state.body.z;// TODO TMP, this should be the parabolic
+					var tmp = preCalc(moveData,hexapod.dmove.gaitsteps, ID);
 
 					hexapod.dmove.leg[ID].dx = (tmp.leg[ID].x - hexapod.state.leg[ID].x) / hexapod.dmove.leg[ID].subgaitstep;
 					hexapod.dmove.leg[ID].dy = (tmp.leg[ID].y - hexapod.state.leg[ID].y) / hexapod.dmove.leg[ID].subgaitstep;
@@ -565,7 +562,6 @@
 	}
 	
 	
-	// Gamepad
 	// moveData with vector x,y,z + AngZ (yaw)
 	var moveData = {
 		x : 0,
@@ -573,6 +569,36 @@
 		z : 0,
 		AngZ : 0
 	};
+	
+	
+	// Keyboard
+	var kMap = { };
+	function initKeyboard() {
+		document.body.onkeydown = document.body.onkeyup = function (e) { 
+			e.preventDefault();
+			kMap[e.code] = (e.type=='keydown'?true:false); 
+			keyboardEvent(e);
+		};
+	}
+	function keyboardEvent(e) {
+		if (kMap.KeyW === true || kMap.KeyA === true || kMap.KeyS === true || kMap.KeyD === true ||
+			kMap.ArrowUp === true || kMap.ArrowDown === true || kMap.ArrowLeft === true || kMap.ArrowRight === true) {
+			
+			moveData.AngZ = -0.5*(kMap.KeyA === true?-1:(kMap.KeyD === true?1:0));
+			//stickData.throttle = speed*(kMap.KeyS === true?-1:(kMap.KeyW === true?1:0));
+			moveData.y = -(kMap.ArrowLeft === true?-1:(kMap.ArrowRight === true?1:0));
+			moveData.x = (kMap.ArrowDown === true?-1:(kMap.ArrowUp === true?1:0));			
+		} else {
+			moveData = {
+				x : 0,
+				y : 0,
+				z : 0,
+				AngZ : 0
+			};
+		}
+		return false;
+	}
+	// Gamepad
 	var gp = false;	// GamePad object
 	var gpInterval = false;
 	function initGamepad() {
@@ -610,11 +636,13 @@
 		gp = navigator.getGamepads()[0];
 		moveData.AngZ = -gp.axes[0]*0.5;	// less speed of rotation TODO
 		moveData.z = -gp.axes[1];
-		moveData.y = gp.axes[2];
+		moveData.y = -gp.axes[2];
 		moveData.x = -gp.axes[3];
 		//console.log("Vector", moveData);
 	}
 	initGamepad();
+	initKeyboard();
+	
 	initHexa();
 
 </script>
