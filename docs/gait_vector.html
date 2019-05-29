@@ -257,6 +257,7 @@
 								
 		*/
 		hexapod.state.leg[ID].AngC = _rad2deg(Math.atan2((hexapod.state.leg[ID].y - hexapod.state.body[ID].y), (hexapod.state.leg[ID].x - hexapod.state.body[ID].x)) - hexapod.const.leg[ID].AngCRad);	// -90...90
+		hexapod.state.leg[ID].AngC -= hexapod.state.body.AngZ;
 		if (hexapod.state.leg[ID].AngC > 180) hexapod.state.leg[ID].AngC -= 360;
 		/*
 								   Lf^2 + (D^2 + (L - Lc)^2) - Lt^2       PI             L - Lc
@@ -331,6 +332,8 @@
 		initState();
 		update();
 		updateImage();
+		
+		setInterval(move, 100);
 	}
 	
 	function updateBody() {
@@ -370,7 +373,7 @@
 		hexapod_image_objects.dbg.leg[ID].expected.y2.baseVal.value = hexapod.state.leg[ID].y * -1;
 
 		// calc X,Y,Z by angles
-		var tmp = hexapod.const.leg[ID].AngCRad;
+		var tmp = hexapod.const.leg[ID].AngCRad + _deg2rad(hexapod.state.body.AngZ);
 		hexapod_image_objects.leg[ID].C.x1.baseVal.value = hexapod.state.body[ID].x;
 		hexapod_image_objects.leg[ID].C.y1.baseVal.value = hexapod.state.body[ID].y * -1;
 		hexapod_image_objects.leg[ID].C.x2.baseVal.value = hexapod.config.leg[ID].Lc * Math.cos(_deg2rad(hexapod.state.leg[ID].AngC)+tmp) + hexapod.state.body[ID].x;
@@ -436,45 +439,46 @@
 			current_gaitstep: 0,	// should not be reseted!!!
 			step_deplay: 100,	// pretent that this is servo move delay (ms) for one of the gait step (later this should be triggered by sensors on the end of the legs)
 			leg: {
-				LF: { inProgress: false, gaitstep_dx: false, gaitstep_dy: false, gaitstep_dz: false, gaitstep_dAngC: false },
-				LM: { inProgress: false, gaitstep_dx: false, gaitstep_dy: false, gaitstep_dz: false, gaitstep_dAngC: false },
-				LB: { inProgress: false, gaitstep_dx: false, gaitstep_dy: false, gaitstep_dz: false, gaitstep_dAngC: false },
-				RF: { inProgress: false, gaitstep_dx: false, gaitstep_dy: false, gaitstep_dz: false, gaitstep_dAngC: false },
-				RM: { inProgress: false, gaitstep_dx: false, gaitstep_dy: false, gaitstep_dz: false, gaitstep_dAngC: false },
-				RB: { inProgress: false, gaitstep_dx: false, gaitstep_dy: false, gaitstep_dz: false, gaitstep_dAngC: false }
+				LF: { inProgress: false, gaitstep_dx: false, gaitstep_dy: false, gaitstep_dz: false, gaitsteps: false },	// use dz as porabolic max (as simplest way at that moment)
+				LM: { inProgress: false, gaitstep_dx: false, gaitstep_dy: false, gaitstep_dz: false, gaitsteps: false },
+				LB: { inProgress: false, gaitstep_dx: false, gaitstep_dy: false, gaitstep_dz: false, gaitsteps: false },
+				RF: { inProgress: false, gaitstep_dx: false, gaitstep_dy: false, gaitstep_dz: false, gaitsteps: false },
+				RM: { inProgress: false, gaitstep_dx: false, gaitstep_dy: false, gaitstep_dz: false, gaitsteps: false },
+				RB: { inProgress: false, gaitstep_dx: false, gaitstep_dy: false, gaitstep_dz: false, gaitsteps: false }
 			}
 		};
 		
-	function moveTo (x,y) {
-		hexapod.dmove.distance_per_step = 80;
-		hexapod.dmove.dx = x - hexapod.state.body.x;
-		hexapod.dmove.dy = y - hexapod.state.body.y;
-		hexapod.dmove.distance = Math.sqrt(Math.pow(hexapod.dmove.dx,2) + Math.pow(hexapod.dmove.dy, 2));
-		hexapod.dmove.AngZ = _rad2deg(Math.atan2(hexapod.dmove.dy, hexapod.dmove.dx));
-		hexapod.dmove.dAngZ = hexapod.dmove.AngZ - hexapod.state.body.AngZ;
-		hexapod.dmove.steps = Math.floor(hexapod.dmove.distance/hexapod.dmove.distance_per_step);
-		
-		// reset step counter
-		hexapod.dmove.current_step = 0;
+	function move() {
+		//hexapod.dmove.distance_per_step = 80;
+		hexapod.dmove.dAngZ = parseFloat(moveData.AngZ);
 
-		hexapod.dmove.step_dx = hexapod.dmove.dx/hexapod.dmove.steps;
-		hexapod.dmove.step_dy = hexapod.dmove.dy/hexapod.dmove.steps;
-		hexapod.dmove.step_dAngZ = hexapod.dmove.dAngZ/hexapod.dmove.steps;
-		moveToNext();
+		hexapod.dmove.dx = parseFloat(moveData.x);
+		hexapod.dmove.dy = parseFloat(moveData.y);
+		if (hexapod.dmove.dx !=0 || hexapod.dmove.dy !=0 || hexapod.dmove.dAngZ !=0) {
+			hexapod.dmove.inProgress = true;
+			console.log("DBG", hexapod.dmove.dx, hexapod.dmove.dy);
+			moveToNext();
+		} else {
+			hexapod.dmove.inProgress = false;
+		}
+		
 	}
+	
 	
 	function movetoNextGaitUpdateLeg(ID) {
 		if (hexapod.dmove.leg[ID].inProgress) {
 			// TODO !!!ANGLE!!!
-			hexapod.state.leg[ID].x += hexapod.dmove.leg[ID].dx;
-			hexapod.state.leg[ID].y += hexapod.dmove.leg[ID].dy;
-			hexapod.state.leg[ID].z += hexapod.dmove.leg[ID].dz;
+			//hexapod.state.leg[ID].x += hexapod.dmove.leg[ID].dx;
+			//hexapod.state.leg[ID].y += hexapod.dmove.leg[ID].dy;
+			//hexapod.state.leg[ID].z += hexapod.dmove.leg[ID].dz;
 		}
 	}
 	
 	function moveToNextGait() {
 		for (var i = 0; i < hexapod.legs.length; i++) {
 			var ID = hexapod.legs[i];
+			
+			/*
 			var leg_state = hexapod.config.gait.sequence[parseInt(hexapod.dmove.current_gaitstep)][ID];
 			if (leg_state == -1) {
 				hexapod.dmove.leg[ID].dz = -hexapod.dmove.gait_z;	// leg to ground (if flat surface)
@@ -498,9 +502,14 @@
 				//console.log("DBG", hexapod.legs[i], "leg to air for", leg_state, "steps", hexapod.dmove.gait_z);
 			} else {
 				// nothing to do with leg, it should follow previows position
-			}
+			}*/
+			
+			// temporary just default legs position
+			var tmp  = _rad2deg(Math.atan2((hexapod.config.body[ID].y - hexapod.config.body.y), (hexapod.config.body[ID].x - hexapod.config.body.x)));
+			hexapod.state.leg[ID].x = Math.cos(_deg2rad(hexapod.config.leg[ID].AngC.default+tmp+hexapod.state.body.AngZ)) * hexapod.config.leg[ID].L.default + hexapod.state.body[ID].x;
+			hexapod.state.leg[ID].y = Math.sin(_deg2rad(hexapod.config.leg[ID].AngC.default+tmp+hexapod.state.body.AngZ)) * hexapod.config.leg[ID].L.default + hexapod.state.body[ID].y;
 		}
-		hexapod.dmove.current_gaitstep++;	// TODO, +0.0001 for super smooth
+		hexapod.dmove.current_gaitstep++;
 		if (hexapod.dmove.current_gaitstep >= hexapod.dmove.gaitsteps) {
 			hexapod.dmove.current_gaitstep = 0;
 			hexapod.dmove.current_step++;
@@ -510,10 +519,11 @@
 	
 	function moveToNext() {
 		hexapod.dmove.inProgress = true;
-		hexapod.state.body.x += hexapod.dmove.step_dx/hexapod.dmove.gaitsteps;
-		hexapod.state.body.y += hexapod.dmove.step_dy/hexapod.dmove.gaitsteps;
-		// TODO comment until leg calcutae without angle
-		//hexapod.state.body.AngZ += hexapod.dmove.step_dAngZ/hexapod.dmove.gaitsteps;	// TODO, move faster and set to 0 as soon as angle reached
+		hexapod.state.body.AngZ += hexapod.dmove.dAngZ;
+		hexapod.state.body.AngZ = _degNorm(hexapod.state.body.AngZ);
+
+		hexapod.state.body.x += hexapod.dmove.dx*Math.cos(_deg2rad(hexapod.state.body.AngZ)) - hexapod.dmove.dy*Math.sin(_deg2rad(hexapod.state.body.AngZ));
+		hexapod.state.body.y += hexapod.dmove.dx*Math.sin(_deg2rad(hexapod.state.body.AngZ)) + hexapod.dmove.dy*Math.cos(_deg2rad(hexapod.state.body.AngZ));
 		
 		moveToNextGait();
 		updateBody();
@@ -532,6 +542,57 @@
 		}
 	}
 	
+	
+	// Gamepad
+	// moveData with vector x,y,z + AngZ (yaw)
+	var moveData = {
+		x : 0,
+		y : 0,
+		z : 0,
+		AngZ : 0
+	};
+	var gp = false;	// GamePad object
+	var gpInterval = false;
+	function initGamepad() {
+		window.addEventListener("gamepadconnected", gamepadConnectHandler);
+		window.addEventListener("gamepaddisconnected", gamepadDisconnectHandler);
+	}
+	function gamepadConnectHandler (e) {
+		gamepadAdd(e.gamepad);
+	}
+	function gamepadDisconnectHandler (e) {
+		gamepadRemove(e.gamepad);
+		moveData = {
+			x : 0,
+			y : 0,
+			z : 0,
+			AngZ : 0
+		};
+	}
+	function gamepadRemove(g) {
+		gp = false;
+	}
+	function gamepadAdd(g) {
+		initGamePadEvents();
+		gp = g;
+	}
+	function initGamePadEvents() {
+		if (gpInterval) {
+			clearInterval(gpInterval);
+			initGamePadEvents();
+		} else {
+			setInterval(function () { gamepadData() }.bind(this), 100);
+		}
+	}
+	function gamepadData() {
+		gp = navigator.getGamepads()[0];
+		moveData.AngZ = gp.axes[0];
+		moveData.z = -gp.axes[1];
+		moveData.y = gp.axes[2];
+		moveData.x = -gp.axes[3];
+		//console.log("Vector", moveData);
+	}
+	initGamepad();
 	initHexa();
 
 </script>
