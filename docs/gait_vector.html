@@ -179,7 +179,7 @@
 	hexapod.config = {
 			body: {
 				x: 0, y: 0, z: 50,	// z - distance from ground
-				AngX: 0, AngY: 0, AngZ: 00,
+				AngX: 0, AngY: 0, AngZ: 0,
 				LF:  { x:  75, y:  40, z: 0 },
 				LM:  { x:   0, y:  65, z: 0 },
 				LB:  { x: -75, y:  40, z: 0 },
@@ -197,6 +197,7 @@
 			},
 			gait: {
 				type: "RIPPLE",	// balance between stable (4 legs on the ground) and speed (not so slow as wave 1 by 1, bu not so fast as with tripod)
+				gaitZ: 20,	// This is only for 2D model, in real life Z should be calculate by creating 3D surface around robot (sounds cool).
 				sequence: [
 					{ "LF":  0, "LM":  0, "LB":  2, "RF":  0, "RM": -1, "RB":  0 },	// 0  - on the ground (stance), 
 					{ "LF":  0, "LM":  0, "LB": -1, "RF":  2, "RM":  0, "RB":  0 }, // >0 - in the air (swing) number of steps before ground,
@@ -339,7 +340,7 @@
 	
 	function preCalc(vector,steps_in_future,ID) {
 		// TODO separate body and legs, there is too much calulcations for nothing *6
-		// return hexapod expected state after steps_in_future
+		// this function should return hexapod expected state after steps_in_future
 		var futurePosition = {
 				body: {
 					x: false, y: false, AngZ: false,
@@ -434,7 +435,7 @@
 		hexapod_image_objects.leg[ID].T.y1.baseVal.value = hexapod_image_objects.leg[ID].F.y2.baseVal.value;		
 			hexapod_image_objects.dbg.leg[ID].T.x.baseVal[0].value = hexapod_image_objects.leg[ID].T.x1.baseVal.value;
 			hexapod_image_objects.dbg.leg[ID].T.y.baseVal[0].value = hexapod_image_objects.leg[ID].T.y1.baseVal.value;
-			hexapod_image_objects.dbg.leg[ID].T.innerHTML = updateImageAngDisplay(hexapod.state.leg[ID].AngT);
+			hexapod_image_objects.dbg.leg[ID].T.innerHTML = updateImageAngDisplay(hexapod.state.leg[ID].AngT) + " z:" + (Math.round(hexapod.state.leg[ID].z*10)/10);
 		var tmpL = hexapod.state.leg[ID].L - tmpL - hexapod.config.leg[ID].Lc;
 		hexapod_image_objects.leg[ID].T.x2.baseVal.value = tmpL * Math.cos(_deg2rad(hexapod.state.leg[ID].AngC)+tmp) + hexapod_image_objects.leg[ID].F.x2.baseVal.value;
 		hexapod_image_objects.leg[ID].T.y2.baseVal.value = (tmpL * Math.sin(_deg2rad(hexapod.state.leg[ID].AngC)+tmp) * -1 + hexapod_image_objects.leg[ID].F.y2.baseVal.value);
@@ -463,26 +464,31 @@
 	
 	hexapod.dmove = {
 			inProgress: false,
-			subgait_steps: 50,
 			distance_per_step: false,
 			distance: false,
 			dx: false,	// delta of full move
 			dy: false,
 			dAngZ: false,
 			angle: false,
+			
+			gait_z: hexapod.config.gait.gaitZ,
+			
 			steps: false,
 			current_step: false,
+			
 			gaitsteps: hexapod.config.gait.sequence.length,
-			gait_z:1,
-			current_gaitstep: 0,	// should not be reseted!!!
+			current_gaitstep: 0,
+			
+			subgaitsteps: 50,
+			
 			step_deplay: 100,	// pretent that this is servo move delay (ms) for one of the gait step (later this should be triggered by sensors on the end of the legs)
 			leg: {
-				LF: { inProgress: false, gaitstep_dx: false, gaitstep_dy: false, gaitstep_dz: false, subgaitstep: false },	// use dz as porabolic max (as simplest way at that moment)
-				LM: { inProgress: false, gaitstep_dx: false, gaitstep_dy: false, gaitstep_dz: false, subgaitstep: false },
-				LB: { inProgress: false, gaitstep_dx: false, gaitstep_dy: false, gaitstep_dz: false, subgaitstep: false },
-				RF: { inProgress: false, gaitstep_dx: false, gaitstep_dy: false, gaitstep_dz: false, subgaitstep: false },
-				RM: { inProgress: false, gaitstep_dx: false, gaitstep_dy: false, gaitstep_dz: false, subgaitstep: false },
-				RB: { inProgress: false, gaitstep_dx: false, gaitstep_dy: false, gaitstep_dz: false, subgaitstep: false }
+				LF: { inProgress: false, gaitstep_dx: false, gaitstep_dy: false, gaitstep_dz: false, gait_z: 0, current_subgaitstep: false, subgaitsteps: false },	// use dz as porabolic max (as simplest way at that moment)
+				LM: { inProgress: false, gaitstep_dx: false, gaitstep_dy: false, gaitstep_dz: false, gait_z: 0, current_subgaitstep: false, subgaitsteps: false },
+				LB: { inProgress: false, gaitstep_dx: false, gaitstep_dy: false, gaitstep_dz: false, gait_z: 0, current_subgaitstep: false, subgaitsteps: false },
+				RF: { inProgress: false, gaitstep_dx: false, gaitstep_dy: false, gaitstep_dz: false, gait_z: 0, current_subgaitstep: false, subgaitsteps: false },
+				RM: { inProgress: false, gaitstep_dx: false, gaitstep_dy: false, gaitstep_dz: false, gait_z: 0, current_subgaitstep: false, subgaitsteps: false },
+				RB: { inProgress: false, gaitstep_dx: false, gaitstep_dy: false, gaitstep_dz: false, gait_z: 0, current_subgaitstep: false, subgaitsteps: false }
 			}
 		};
 		
@@ -503,9 +509,13 @@
 	
 	function movetoNextGaitUpdateLeg(ID) {
 		if (hexapod.dmove.leg[ID].inProgress) {
-			hexapod.state.leg[ID].x += hexapod.dmove.leg[ID].dx;
+			var g_move_progress = hexapod.dmove.leg[ID].current_subgaitstep / hexapod.dmove.leg[ID].subgaitsteps;
+			hexapod.state.leg[ID].x += hexapod.dmove.leg[ID].dx;	// probably it is a good idea to use smooth function for all axis, not only x^4 for Z axis
 			hexapod.state.leg[ID].y += hexapod.dmove.leg[ID].dy;
-			//hexapod.state.leg[ID].z += hexapod.dmove.leg[ID].dz;
+			// Z axis on flat surface will use y=-(2*x-1)^4+1
+			// this will get us `x` [0...1] where `y` will be `0` to `1` to `0`, looks like perfect (and simple!) for leg 
+			// as in the middle it will be max and zeros at the begin and end
+			hexapod.state.leg[ID].z = (-Math.pow(2*g_move_progress-1,4)+1) * hexapod.dmove.leg[ID].gait_z - hexapod.state.body.z;
 		}
 	}
 	
@@ -515,30 +525,29 @@
 			
 
 			var leg_steps = hexapod.config.gait.sequence[parseInt(hexapod.dmove.current_gaitstep)][ID];
-			if (hexapod.dmove.leg[ID].subgaitstep > 0) {
-				hexapod.dmove.leg[ID].subgaitstep--;
+			if (hexapod.dmove.leg[ID].current_subgaitstep < hexapod.dmove.leg[ID].subgaitsteps) {
+				hexapod.dmove.leg[ID].current_subgaitstep++;
 				movetoNextGaitUpdateLeg(ID);
 			} else {
-				hexapod.dmove.leg[ID].subgaitstep = false;
+				hexapod.dmove.leg[ID].subgaitsteps = false;
+				hexapod.dmove.leg[ID].current_subgaitstep = false;
 				hexapod.dmove.leg[ID].inProgress = false;	// looks like the same
-				hexapod.state.leg[ID].z = -hexapod.state.body.z;
 			}
 
 			if (leg_steps > 0) {
 				if (!hexapod.dmove.leg[ID].inProgress) {
 					hexapod.dmove.leg[ID].inProgress = true;
-					hexapod.dmove.leg[ID].subgaitstep = parseInt(hexapod.dmove.subgait_steps) * leg_steps;
-					hexapod.state.leg[ID].z = hexapod.state.body.z;// TODO TMP, this should be the parabolic
+					hexapod.dmove.leg[ID].current_subgaitstep = 0;
+					hexapod.dmove.leg[ID].gait_z = hexapod.dmove.gait_z;
+					hexapod.dmove.leg[ID].subgaitsteps = parseInt(hexapod.dmove.subgaitsteps) * leg_steps;
 					var tmp = preCalc(moveData,hexapod.dmove.gaitsteps, ID);
 
-					hexapod.dmove.leg[ID].dx = (tmp.leg[ID].x - hexapod.state.leg[ID].x) / hexapod.dmove.leg[ID].subgaitstep;
-					hexapod.dmove.leg[ID].dy = (tmp.leg[ID].y - hexapod.state.leg[ID].y) / hexapod.dmove.leg[ID].subgaitstep;
-					hexapod.dmove.leg[ID].dz = hexapod.dmove.gait_z;	// max of parabpolic move (a the hexapod.dmove.leg[ID].subgaitstep/2)
+					hexapod.dmove.leg[ID].dx = (tmp.leg[ID].x - hexapod.state.leg[ID].x) / hexapod.dmove.leg[ID].subgaitsteps;
+					hexapod.dmove.leg[ID].dy = (tmp.leg[ID].y - hexapod.state.leg[ID].y) / hexapod.dmove.leg[ID].subgaitsteps;
 				}				
 			}
-
 		}
-		hexapod.dmove.current_gaitstep += 1/hexapod.dmove.subgait_steps;	// TODO calc ones
+		hexapod.dmove.current_gaitstep += 1/hexapod.dmove.subgaitsteps;	// TODO calc ones
 		if (hexapod.dmove.current_gaitstep >= hexapod.dmove.gaitsteps) {
 			hexapod.dmove.current_gaitstep = 0;
 			hexapod.dmove.current_step++;
