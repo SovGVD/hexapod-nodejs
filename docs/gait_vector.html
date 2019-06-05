@@ -331,7 +331,7 @@
 		hexapod.state.body.z    = parseFloat(hexapod.config.body.z);
 		hexapod.state.body.AngX = parseFloat(hexapod.config.body.AngX);
 		hexapod.state.body.AngY = parseFloat(hexapod.config.body.AngY);
-		hexapod.state.body.AngZ = parseFloat(hexapod.config.body.AngZ);
+		hexapod.state.body.AngZ = parseFloat(hexapod.config.body.AngZ)+90;
 		
 		
 		/*updateBody();
@@ -457,9 +457,10 @@
 	function preCalc(vector,steps_in_future,ID) {
 		// TODO separate body and legs, there is too much calulcations for nothing *6
 		// this function should return hexapod expected state after steps_in_future
+		steps_in_future=1;
 		var futurePosition = getDefaultBodyState( {
-				x: hexapod.state.body.x + steps_in_future*vector.x,
-				y: hexapod.state.body.y + steps_in_future*vector.y,
+				x: hexapod.state.body.x + steps_in_future*(vector.x*Math.cos(_degNorm(hexapod.state.body.AngZ + steps_in_future*vector.AngZ)) - vector.y*Math.sin(_degNorm(hexapod.state.body.AngZ + steps_in_future*vector.AngZ))),
+				y: hexapod.state.body.y + steps_in_future*(vector.y*Math.sin(_degNorm(hexapod.state.body.AngZ + steps_in_future*vector.AngZ)) + vector.y*Math.cos(_degNorm(hexapod.state.body.AngZ + steps_in_future*vector.AngZ))),
 				z: hexapod.state.body.z,
 				AngX: hexapod.state.body.AngX,
 				AngY: hexapod.state.body.AngY,
