@@ -260,7 +260,6 @@
 	hexapod.preState = false;
 	hexapod.state = {
 			body: {
-				x0: 0, y0: 0, z0:0,	// inititial position, TODO update after gait*steps finished
 				x: 0, y: 0, z: 0, 
 				AngX: 0, AngY: 0, AngZ: 0,
 				LF:  { x: false, y: false, z: false },
@@ -332,16 +331,7 @@
 		hexapod.state.body.AngX = parseFloat(hexapod.config.body.AngX);
 		hexapod.state.body.AngY = parseFloat(hexapod.config.body.AngY);
 		hexapod.state.body.AngZ = parseFloat(hexapod.config.body.AngZ)+90;
-		
-		
-		/*updateBody();
-		
-		console.log("INIT", JSON.stringify(hexapod.config));
 
-		for (var i = 0; i < hexapod.legs.length; i++) {
-			initLeg(hexapod.legs[i]);
-		}*/
-		
 		var tmp = getDefaultBodyState( {
 				x: parseFloat(hexapod.state.body.x),
 				y: parseFloat(hexapod.state.body.y),
@@ -349,7 +339,7 @@
 				AngX: parseFloat(hexapod.state.body.AngX),
 				AngY: parseFloat(hexapod.state.body.AngY),
 				AngZ: parseFloat(hexapod.state.body.AngZ)
-			} );
+			}, false );
 		for (var i = 0; i < hexapod.legs.length; i++) {
 			var ID = hexapod.legs[i];
 			hexapod.state.body[ID].x = parseFloat(tmp.body[ID].x);
@@ -374,10 +364,9 @@
 	}
 	
 	
-	function getDefaultBodyState(body) {
+	function getDefaultBodyState(body, _ID) {
+		//var _ID = false;	// DEBUG
 		// this function should return default hexapod state at body.x, body.y, body.z point, rotated body.AngX (TODO and don't forgot about balance), body.AngY(TODO...), boby.AngZ
-		// I'm expect that config X and Y zeros!
-		console.log("Default based on", JSON.stringify(body));
 		var ret = {
 				body: {
 				},
@@ -388,59 +377,49 @@
 		var _tmp_sin = Math.sin(_deg2rad(body.AngZ));
 
 		for (var i = 0; i < hexapod.legs.length; i++) {
-			var ID = hexapod.legs[i];
-			ret.body[ID] = { };
-			ret.leg[ID] = { };
+			if (_ID === false || _ID == hexapod.legs[i] ) {
+				var ID = hexapod.legs[i];
+				ret.body[ID] = { };
+				ret.leg[ID] = { };
 
-			ret.body[ID].x = body.x + (hexapod.config.body[ID].x)*_tmp_cos - (hexapod.config.body[ID].y)*_tmp_sin;
-			ret.body[ID].y = body.y + (hexapod.config.body[ID].x)*_tmp_sin + (hexapod.config.body[ID].y)*_tmp_cos;
-			ret.body[ID].z = parseFloat(body.z);
-			
-			// TODO looks like const
-			var _tmp_x = Math.cos(_deg2rad(hexapod.config.leg[ID].AngC.default+_rad2deg(hexapod.const.leg[ID].AngCRad))) * hexapod.config.leg[ID].L.default + hexapod.config.body[ID].x;
-			var _tmp_y = Math.sin(_deg2rad(hexapod.config.leg[ID].AngC.default+_rad2deg(hexapod.const.leg[ID].AngCRad))) * hexapod.config.leg[ID].L.default + hexapod.config.body[ID].y;
-			ret.leg[ID].x = body.x + (_tmp_x)*_tmp_cos - (_tmp_y)*_tmp_sin;
-			ret.leg[ID].y = body.y + (_tmp_x)*_tmp_sin + (_tmp_y)*_tmp_cos;
-			ret.leg[ID].z = parseFloat(getGround(ret.leg[ID].x, ret.leg[ID].y));
-			
-			hexapod_image_objects.dbg.leg[ID].ghost.x1.baseVal.value = ret.body[ID].x;
-			hexapod_image_objects.dbg.leg[ID].ghost.y1.baseVal.value = ret.body[ID].y * -1;
-			hexapod_image_objects.dbg.leg[ID].ghost.x2.baseVal.value = ret.leg[ID].x;
-			hexapod_image_objects.dbg.leg[ID].ghost.y2.baseVal.value = ret.leg[ID].y * -1;
-
+				ret.body[ID].x = body.x + (hexapod.config.body[ID].x)*_tmp_cos - (hexapod.config.body[ID].y)*_tmp_sin;
+				ret.body[ID].y = body.y + (hexapod.config.body[ID].x)*_tmp_sin + (hexapod.config.body[ID].y)*_tmp_cos;
+				ret.body[ID].z = parseFloat(body.z);
+				
+				ret.leg[ID].x = body.x + (hexapod.const.leg[ID].defaultX)*_tmp_cos - (hexapod.const.leg[ID].defaultY)*_tmp_sin;
+				ret.leg[ID].y = body.y + (hexapod.const.leg[ID].defaultX)*_tmp_sin + (hexapod.const.leg[ID].defaultY)*_tmp_cos;
+				ret.leg[ID].z = parseFloat(getGround(ret.leg[ID].x, ret.leg[ID].y));
+				
+				hexapod_image_objects.dbg.leg[ID].ghost.x1.baseVal.value = ret.body[ID].x;
+				hexapod_image_objects.dbg.leg[ID].ghost.y1.baseVal.value = ret.body[ID].y * -1;
+				hexapod_image_objects.dbg.leg[ID].ghost.x2.baseVal.value = ret.leg[ID].x;
+				hexapod_image_objects.dbg.leg[ID].ghost.y2.baseVal.value = ret.leg[ID].y * -1;
+			}
 		}
 		
 		for (var i = 0; i < hexapod_image_objects.body_legs.length; i++) {
-			hexapod_image_objects.ghost_body.points[i].x = ret.body[hexapod_image_objects.body_legs[i]].x;
-			hexapod_image_objects.ghost_body.points[i].y = ret.body[hexapod_image_objects.body_legs[i]].y * -1;	// invert Y axis for display
+			if (_ID === false || _ID == hexapod_image_objects.body_legs[i] ) {
+				hexapod_image_objects.ghost_body.points[i].x = ret.body[hexapod_image_objects.body_legs[i]].x;
+				hexapod_image_objects.ghost_body.points[i].y = ret.body[hexapod_image_objects.body_legs[i]].y * -1;	// invert Y axis for display
+			}
 		}
-
 		
 		return ret;
 	}
-	
-	function initLeg(ID) {
-		// init leg XYZ based on init AngC and default length od leg
-		hexapod.state.leg[ID].z = -hexapod.state.body.z;	// init leg D from ground;
-		var tmp = _rad2deg(Math.atan2((hexapod.config.body[ID].y - hexapod.config.body.y), (hexapod.config.body[ID].x - hexapod.config.body.x)));	// TODO this is commonly used
-		var _x = Math.cos(_deg2rad(hexapod.config.leg[ID].AngC.default+tmp)) * hexapod.config.leg[ID].L.default; + hexapod.config.body[ID].x;
-		var _y = Math.sin(_deg2rad(hexapod.config.leg[ID].AngC.default+tmp)) * hexapod.config.leg[ID].L.default; + hexapod.config.body[ID].y;
 		
-		hexapod.state.leg[ID].x = Math.cos(hexapod.state.body.AngZ)*(_x) - Math.sin(hexapod.state.body.AngZ)*(_y);
-		hexapod.state.leg[ID].y = Math.sin(hexapod.state.body.AngZ)*(_x) + Math.cos(hexapod.state.body.AngZ)*(_y);
-	}
-	
 	function initState() {
 		initBody();
 	}
 	
 	function initConst() {
 		for (var i = 0; i < hexapod.legs.length; i++) {
-			//console.log("initConst", hexapod.legs[i]);
-			hexapod.const.leg[hexapod.legs[i]].Lf2 = Math.pow(hexapod.config.leg[hexapod.legs[i]].Lf, 2);
-			hexapod.const.leg[hexapod.legs[i]].Lt2 = Math.pow(hexapod.config.leg[hexapod.legs[i]].Lt, 2);
-			hexapod.const.leg[hexapod.legs[i]].LtLf = hexapod.config.leg[hexapod.legs[i]].Lt * hexapod.config.leg[hexapod.legs[i]].Lf;
-			hexapod.const.leg[hexapod.legs[i]].AngCRad = Math.atan2((hexapod.config.body[hexapod.legs[i]].y - hexapod.config.body.y), (hexapod.config.body[hexapod.legs[i]].x - hexapod.config.body.x));
+			var ID = hexapod.legs[i];
+			hexapod.const.leg[ID].Lf2 = Math.pow(hexapod.config.leg[ID].Lf, 2);
+			hexapod.const.leg[ID].Lt2 = Math.pow(hexapod.config.leg[ID].Lt, 2);
+			hexapod.const.leg[ID].LtLf = hexapod.config.leg[ID].Lt * hexapod.config.leg[ID].Lf;
+			hexapod.const.leg[ID].AngCRad = Math.atan2((hexapod.config.body[ID].y - hexapod.config.body.y), (hexapod.config.body[ID].x - hexapod.config.body.x));
+			hexapod.const.leg[ID].defaultX = Math.cos(_deg2rad(hexapod.config.leg[ID].AngC.default+_rad2deg(hexapod.const.leg[ID].AngCRad))) * hexapod.config.leg[ID].L.default + hexapod.config.body[ID].x;
+			hexapod.const.leg[ID].defaultY = Math.sin(_deg2rad(hexapod.config.leg[ID].AngC.default+_rad2deg(hexapod.const.leg[ID].AngCRad))) * hexapod.config.leg[ID].L.default + hexapod.config.body[ID].y;
 		}
 		// TODO init min/max 3d polygon for legs
 	}
@@ -454,18 +433,19 @@
 		setInterval(move, 1);
 	}
 	
-	function preCalc(vector,steps_in_future,ID) {
-		// TODO separate body and legs, there is too much calulcations for nothing *6
+	function preCalc(vector, ID) {
 		// this function should return hexapod expected state after steps_in_future
-		steps_in_future=1;
+		var _tmp = _degNorm(hexapod.state.body.AngZ + vector.AngZ);
+		var _tmp_sin = Math.sin(_tmp);
+		var _tmp_cos = Math.cos(_tmp);
 		var futurePosition = getDefaultBodyState( {
-				x: hexapod.state.body.x + steps_in_future*(vector.x*Math.cos(_degNorm(hexapod.state.body.AngZ + steps_in_future*vector.AngZ)) - vector.y*Math.sin(_degNorm(hexapod.state.body.AngZ + steps_in_future*vector.AngZ))),
-				y: hexapod.state.body.y + steps_in_future*(vector.y*Math.sin(_degNorm(hexapod.state.body.AngZ + steps_in_future*vector.AngZ)) + vector.y*Math.cos(_degNorm(hexapod.state.body.AngZ + steps_in_future*vector.AngZ))),
+				x: hexapod.state.body.x + vector.x*_tmp_cos - vector.y*_tmp_sin,
+				y: hexapod.state.body.y + vector.y*_tmp_sin + vector.y*_tmp_cos,
 				z: hexapod.state.body.z,
 				AngX: hexapod.state.body.AngX,
 				AngY: hexapod.state.body.AngY,
-				AngZ: _degNorm(hexapod.state.body.AngZ + steps_in_future*vector.AngZ)
-			} );
+				AngZ: _tmp
+			}, ID );
 		return futurePosition;
 	}
 	
@@ -575,15 +555,16 @@
 			current_gaitstep: 0,
 			
 			subgaitsteps: 50,
+			delta_gaitstep: 1/50,
 			
 			step_deplay: 100,	// pretent that this is servo move delay (ms) for one of the gait step (later this should be triggered by sensors on the end of the legs)
 			leg: {
-				LF: { inProgress: false, gaitstep_dx: false, gaitstep_dy: false, gaitstep_dz: false, gait_z: 0, current_subgaitstep: false, subgaitsteps: false },	// use dz as porabolic max (as simplest way at that moment)
-				LM: { inProgress: false, gaitstep_dx: false, gaitstep_dy: false, gaitstep_dz: false, gait_z: 0, current_subgaitstep: false, subgaitsteps: false },
-				LB: { inProgress: false, gaitstep_dx: false, gaitstep_dy: false, gaitstep_dz: false, gait_z: 0, current_subgaitstep: false, subgaitsteps: false },
-				RF: { inProgress: false, gaitstep_dx: false, gaitstep_dy: false, gaitstep_dz: false, gait_z: 0, current_subgaitstep: false, subgaitsteps: false },
-				RM: { inProgress: false, gaitstep_dx: false, gaitstep_dy: false, gaitstep_dz: false, gait_z: 0, current_subgaitstep: false, subgaitsteps: false },
-				RB: { inProgress: false, gaitstep_dx: false, gaitstep_dy: false, gaitstep_dz: false, gait_z: 0, current_subgaitstep: false, subgaitsteps: false }
+				LF: { inProgress: false, gaitstep_dx: false, gaitstep_dy: false, gaitstep_dz: false, gait_z: 0, ground_z: false, current_subgaitstep: false, subgaitsteps: false },
+				LM: { inProgress: false, gaitstep_dx: false, gaitstep_dy: false, gaitstep_dz: false, gait_z: 0, ground_z: false, current_subgaitstep: false, subgaitsteps: false },
+				LB: { inProgress: false, gaitstep_dx: false, gaitstep_dy: false, gaitstep_dz: false, gait_z: 0, ground_z: false, current_subgaitstep: false, subgaitsteps: false },
+				RF: { inProgress: false, gaitstep_dx: false, gaitstep_dy: false, gaitstep_dz: false, gait_z: 0, ground_z: false, current_subgaitstep: false, subgaitsteps: false },
+				RM: { inProgress: false, gaitstep_dx: false, gaitstep_dy: false, gaitstep_dz: false, gait_z: 0, ground_z: false, current_subgaitstep: false, subgaitsteps: false },
+				RB: { inProgress: false, gaitstep_dx: false, gaitstep_dy: false, gaitstep_dz: false, gait_z: 0, ground_z: false, current_subgaitstep: false, subgaitsteps: false }
 			}
 		};
 		
@@ -610,15 +591,13 @@
 			// Z axis on flat surface will use y=-(2*x-1)^4+1
 			// this will get us `x` [0...1] where `y` will be `0` to `1` to `0`, looks like perfect (and simple!) for leg 
 			// as in the middle it will be max and zeros at the begin and end
-			hexapod.state.leg[ID].z = (-Math.pow(2*g_move_progress-1,4)+1) * hexapod.dmove.leg[ID].gait_z - hexapod.state.body.z;
+			hexapod.state.leg[ID].z = (-Math.pow(2*g_move_progress-1,4)+1) * hexapod.dmove.leg[ID].gait_z + hexapod.dmove.leg[ID].ground_z;
 		}
 	}
 	
 	function moveToNextGait() {
 		for (var i = 0; i < hexapod.legs.length; i++) {
 			var ID = hexapod.legs[i];
-			
-
 			var leg_steps = hexapod.config.gait.sequence[parseInt(hexapod.dmove.current_gaitstep)][ID];
 			if (hexapod.dmove.leg[ID].current_subgaitstep < hexapod.dmove.leg[ID].subgaitsteps) {
 				hexapod.dmove.leg[ID].current_subgaitstep++;
@@ -634,15 +613,16 @@
 					hexapod.dmove.leg[ID].inProgress = true;
 					hexapod.dmove.leg[ID].current_subgaitstep = 0;
 					hexapod.dmove.leg[ID].gait_z = hexapod.dmove.gait_z;
+					hexapod.dmove.leg[ID].ground_z = -80; 	// TODO, not just 80, but expected ground level
 					hexapod.dmove.leg[ID].subgaitsteps = parseInt(hexapod.dmove.subgaitsteps);
-					var tmp = preCalc(moveData,hexapod.dmove.gaitsteps, ID);
+					var tmp = preCalc(moveData, ID);
 
 					hexapod.dmove.leg[ID].dx = (tmp.leg[ID].x - hexapod.state.leg[ID].x) / hexapod.dmove.leg[ID].subgaitsteps;
 					hexapod.dmove.leg[ID].dy = (tmp.leg[ID].y - hexapod.state.leg[ID].y) / hexapod.dmove.leg[ID].subgaitsteps;
 				}				
 			}
 		}
-		hexapod.dmove.current_gaitstep += 1/hexapod.dmove.subgaitsteps;	// TODO calc ones
+		hexapod.dmove.current_gaitstep += hexapod.dmove.delta_gaitstep;
 		if (hexapod.dmove.current_gaitstep >= hexapod.dmove.gaitsteps) {
 			hexapod.dmove.current_gaitstep = 0;
 			hexapod.dmove.current_step++;
