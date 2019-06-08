@@ -221,12 +221,12 @@
 				RB:  { x: -75, y: -40, z: -80 }
 			},
 			leg: {
-				LF: { AngC: { min: -50, max: 50, default: 0 }, Lc: 27, Lf: 85, Lt: 120, L: { min: 40, max: 250, default: 150 } },	// TODO min and max!!! AngF (0...90)
-				LM: { AngC: { min: -50, max: 50, default: 0 }, Lc: 27, Lf: 85, Lt: 120, L: { min: 40, max: 250, default: 150 } },
-				LB: { AngC: { min: -50, max: 50, default: 0 }, Lc: 27, Lf: 85, Lt: 120, L: { min: 40, max: 250, default: 150 } },
-				RF: { AngC: { min: -50, max: 50, default: 0 }, Lc: 27, Lf: 85, Lt: 120, L: { min: 40, max: 250, default: 150 } },
-				RM: { AngC: { min: -50, max: 50, default: 0 }, Lc: 27, Lf: 85, Lt: 120, L: { min: 40, max: 250, default: 150 } },
-				RB: { AngC: { min: -50, max: 50, default: 0 }, Lc: 27, Lf: 85, Lt: 120, L: { min: 40, max: 250, default: 150 } }
+				LF: { AngC: { min: -50, max: 50, default: 0 }, Lc: 27, Lf: 85, Lt: 120, L: { min: 40, max: 250, default: 100 } },	// TODO min and max!!! AngF (0...90)
+				LM: { AngC: { min: -50, max: 50, default: 0 }, Lc: 27, Lf: 85, Lt: 120, L: { min: 40, max: 250, default: 100 } },
+				LB: { AngC: { min: -50, max: 50, default: 0 }, Lc: 27, Lf: 85, Lt: 120, L: { min: 40, max: 250, default: 100 } },
+				RF: { AngC: { min: -50, max: 50, default: 0 }, Lc: 27, Lf: 85, Lt: 120, L: { min: 40, max: 250, default: 100 } },
+				RM: { AngC: { min: -50, max: 50, default: 0 }, Lc: 27, Lf: 85, Lt: 120, L: { min: 40, max: 250, default: 100 } },
+				RB: { AngC: { min: -50, max: 50, default: 0 }, Lc: 27, Lf: 85, Lt: 120, L: { min: 40, max: 250, default: 100 } }
 			},
 			gait: {
 				type: "RIPPLE",	// balance between stable (4 legs on the ground) and speed (not so slow as wave 1 by 1, bu not so fast as with tripod)
@@ -330,7 +330,7 @@
 		hexapod.state.body.z    = parseFloat(hexapod.config.body.z);
 		hexapod.state.body.AngX = parseFloat(hexapod.config.body.AngX);
 		hexapod.state.body.AngY = parseFloat(hexapod.config.body.AngY);
-		hexapod.state.body.AngZ = parseFloat(hexapod.config.body.AngZ)+90;
+		hexapod.state.body.AngZ = parseFloat(hexapod.config.body.AngZ);
 
 		var tmp = getDefaultBodyState( {
 				x: parseFloat(hexapod.state.body.x),
@@ -353,7 +353,7 @@
 	
 	
 	function getGround(x,y) {	// TODO this will be used for 3D surface only
-		return -80;
+		return -100;
 	}
 	
 	function isLegOnTheGround(ID) {
@@ -555,7 +555,7 @@
 			current_gaitstep: 0,
 			
 			subgaitsteps: 50,
-			delta_gaitstep: 1/50,
+			delta_gaitstep: false,
 			
 			step_deplay: 100,	// pretent that this is servo move delay (ms) for one of the gait step (later this should be triggered by sensors on the end of the legs)
 			leg: {
@@ -567,7 +567,7 @@
 				RB: { inProgress: false, gaitstep_dx: false, gaitstep_dy: false, gaitstep_dz: false, gait_z: 0, ground_z: false, current_subgaitstep: false, subgaitsteps: false }
 			}
 		};
-		
+	hexapod.dmove.delta_gaitstep = 1/hexapod.dmove.subgaitsteps;
 	function move() {
 		hexapod.dmove.dAngZ = parseFloat(moveData.AngZ);
 
@@ -613,7 +613,7 @@
 					hexapod.dmove.leg[ID].inProgress = true;
 					hexapod.dmove.leg[ID].current_subgaitstep = 0;
 					hexapod.dmove.leg[ID].gait_z = hexapod.dmove.gait_z;
-					hexapod.dmove.leg[ID].ground_z = -80; 	// TODO, not just 80, but expected ground level
+					hexapod.dmove.leg[ID].ground_z = -100; 	// TODO, not just 80, but expected ground level
 					hexapod.dmove.leg[ID].subgaitsteps = parseInt(hexapod.dmove.subgaitsteps);
 					var tmp = preCalc(moveData, ID);
 
@@ -641,9 +641,14 @@
 		moveToNextGait();
 		updateBody();
 		updateLeg();
+		
 
 		//console.log("MOVE body", hexapod.state.body);
-		updateImage();		
+		updateImage();
+		//if (hexapod.state.leg != false) {
+			sendCmd('state', hexapod.state.leg);
+		//}
+		//sendCmd('state', {leg:{ RM: { AngC:  } }});
 	}
 	
 	
@@ -729,6 +734,40 @@
 	initKeyboard();
 	
 	initHexa();
+	
+	
+	
+	// Send angles to real robot
+	var ws_control = false;
+	var host="192.168.31.72";
+	function initControlFeedReceive() {
+		ws_control.send("t");
+	}
+	function processControl(data) {
+		//console.log(data);
+	}
+	function sendCmd(_cmd, _value) {
+		if (ws_control) {
+			ws_control.send(JSON.stringify({ cmd: { cmd: _cmd, value: _value } }));
+		}
+	}
+	function initControl() {
+		try {
+			ws_control = new WebSocket("ws://"+host+":8082/");
+			ws_control.onmessage = function (data) {
+				processControl(data);
+			};
+			ws_control.onopen = function () {
+				initControlFeedReceive();
+			};
+			ws_control.onerror = function () {
+				ws_control.close();
+			}
+		} catch (e) {
+			console.log("Error","Control", "reconnect");
+		}
+	}
+	initControl();
 
 </script>
 </body>
