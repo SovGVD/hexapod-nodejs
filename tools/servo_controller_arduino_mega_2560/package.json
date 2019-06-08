@@ -1,0 +1,14 @@
+{
+  "name": "servo_controller_arduino_mega_2560",
+  "version": "0.0.1",
+  "description": "Test tool to servo controller based on Arduino Mega 2560",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Gleb Devyatkin",
+  "license": "MIT",
+  "dependencies": {
+    "serialport": "^7.1.5"
+  }
+}
