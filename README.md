@@ -22,9 +22,9 @@ Top view (initial state)
         |      |            |
         |      |            |
  -------0======0===0========X
-  robot |\
-   body | \
-        |  \
+  robot |.
+   body | .
+        |  .
         |   AngleCoxa
 
      +X
@@ -38,12 +38,12 @@ Y+<---Z
 ```
                         ___X  -----
                   ___---        ^
-            __0--0              | -- (y1-y0)
+            __0--0              | - - (y1-y0)
          ---                    v
- -------0-  -  -  -  -  -  -  -----
-  robot |\
-   body | \
-        |  \
+ -------0-  -  -  -  -  -  -  ----- AngC = 0deg
+  robot |.
+   body | .
+        |  .
         |   AngleCoxa
 
 
@@ -55,16 +55,16 @@ Y+<---Z
 
 Front view
 ```
-                   0--AngleTibia
-        femur-.  // \\
-               \//   \\
-       ||      //     \\
-   .----0======0       \\--tibia
-   |   ||   |   \       \\
-   |        |    \       \\
-   |     coxa     \       \\
-   |          AngleFemur   \\
-  Leg(id,x0,y0,z0)          X--ground point Leg(id, x1, y1, z1)
+                      0
+        femur-.     // \\                               ^    Z=0
+               .  //    \\                              |  .
+       ||       //       \\                             |.
+   .- - 0======0          \\ - - tibia    --------------O---> 
+   .   ||   .              \\
+   .        .               \\
+   .     coxa                \\
+   .                          \\
+  Leg(id,x0,y0,z0)             X - - ground point Leg(id, x1, y1, z1)
    
 +Z
 ^
@@ -76,6 +76,28 @@ X---> +Y
 
 
 
+```
+              | AngleFemur /
+              |   .      /
+              |  .     /
+              |  .    0
+              | .   //.\\
+              |.  // .  \\
+       ||     | //  .    \\
+        0======0   .      \\
+       ||     /   .        \\
+             /  .           \\
+            /  AngleTibia    \\
+                              \\
+                               X
+   
++Z
+^
+|
+X---> +Y
+```
+
+
 This should be easy in the code, as most of the variables just a constants
 ```
                        Lt^2 + Lf^2 - (D^2 + (L - Lc)^2)
@@ -84,13 +106,12 @@ AngleTibia = arccos ( --------------------------------- )
 ```
 AngleTibia angle 0...180 deg
 
-
 ```
-                       Lf^2 + (D^2 + (L - Lc)^2) - Lt^2       PI             L - Lc
-AngleFemur = arccos ( ---------------------------------- ) - ---- + arctan( -------- )
-                       2 * Lf * sqrt(D^2 + (L - Lc)^2)         2               D
+                            Lf^2 + (D^2 + (L - Lc)^2) - Lt^2                           D
+AngleFemur = PI - arccos ( ---------------------------------- ) - arccos ( ------------------------ )
+                            2 * Lf * sqrt(D^2 + (L - Lc)^2)                 sqrt(D^2 + (L - Lc)^2)
 ```
-AngleFemur angle 0...90 deg
+AngleFemur angle 0...180 deg
 
 
 ```
