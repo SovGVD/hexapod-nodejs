@@ -1,3 +1,4 @@
+const WebSocket = require('ws');
 const SerialPort = require('serialport');
 const Readline = require('@serialport/parser-readline')
 const port = new SerialPort('/dev/ttyUSB0', { baudRate: 115200 });
@@ -8,8 +9,8 @@ const parser = new Readline()
 port.pipe(parser)
 
 var servoValues = [
-     801,  802,  803,  804,  805,  806,  807,  808,  809,  810,  811,  812,
-    1013, 1014, 1015, 1016, 1017, 1018, 1019, 1020, 1021, 1022, 1023, 2024
+    1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500,
+    1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500
     ];
 
 function servoControllerPackage() {
@@ -24,29 +25,55 @@ function servoControllerPackage() {
 parser.on('data', line => console.log(`> ${line}`))
 
 port.on('data', function (data) {
-  //console.log(data.toString());
-    if (data.toString() == "ready\r\n") {
-	isControllerReady = true;
-    }
+	//console.log(data.toString());
+	if (data.toString() == "ready\r\n") {
+		isControllerReady = true;
+	}
 });
 
 
 
-function send() {
+function send(data) {
 	if (isControllerReady) {
+		// expect angles from 0 to 180;
+		for (var i = 0; i < 24; i++) {
+			servoValues[i] = parseInt((data.cmd.value[i]/180)*1600+700);	// 700 ... 2300
+		}
+
 		var tmp = servoControllerPackage();
-		console.log("Write:", tmp);
+		//console.log("Write:", tmp, servoValues);
+		console.log("< ", servoValues.join(" "));
 		port.write(tmp, function(err) {
-		  if (err) {
-		    return console.log('Error on write: ', err.message)
-		  }
-		  console.log('message written');
-		  for (var i = 0; i < 24; i++) {
-		    servoValues[i] = parseInt(Math.random()*1400+800);
-		  }
+			if (err) {
+				return console.log('Error on write: ', err.message)
+			}
+			//console.log('message written');
 		});
 	}
 }
 
 
-setInterval(send, 3000);
+function ws_init () {
+
+		// Control Feed
+		ws_control = new WebSocket.Server({ port: 8082 });
+		ws_control.on('connection', function connection(ws) {
+			ws.on('message', function (message) {
+				try {
+					if (message[0] == '{') {
+						send(JSON.parse(message));
+					} else {
+						console.log("WebClient",message);
+					}
+				} catch (e) {
+					ws.send("false");
+					console.log("WSTELEMETRYERROR:",e,"Message",message);
+				}
+			});
+		});
+	}
+
+
+ws_init();
+
+//setInterval(send, 3000);
