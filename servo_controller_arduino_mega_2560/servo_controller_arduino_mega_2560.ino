@@ -42,7 +42,7 @@ unsigned int servoPins[24]={
 
 // Servo defaults (min, mid(default), max)
 unsigned int servoDefault[3]={
-    800, 1500, 2200
+    700, 1500, 2300
   };
 
 // Servo values
@@ -90,15 +90,18 @@ void loop() {
         serialTmpValue = preByte<<8 | curByte;
         serialServo = (serialPackageServo-1)/2;
         #ifdef DEBUG
-          Serial.print("Servo ");
-          Serial.print(serialServo, DEC);
-          Serial.print(" [");
-          Serial.print(preByte, HEX);
-          Serial.print(curByte, HEX);
-          Serial.print("] = "),
-          Serial.println(serialTmpValue, DEC);
+          //Serial.print("Servo ");
+          //Serial.print(serialServo, DEC);
+          //Serial.print(" [");
+          //Serial.print(preByte, HEX);
+          //Serial.print(" ");
+          //Serial.print(curByte, HEX);
+          //Serial.print(" ");
+          //Serial.print("] = "),
+          Serial.print(serialTmpValue, DEC);
+          Serial.print(" ");
         #endif
-        if (serialTmpValue != servoValues[serialServo]) {
+        if (serialTmpValue != servoValues[serialServo] && serialTmpValue >= servoDefault[0] && serialTmpValue <= servoDefault[2]) {
           servoValues[serialServo] = serialTmpValue;
           servoUpdate[serialServo] = true;
         }
@@ -106,15 +109,16 @@ void loop() {
       serialPackageServo++;
       if (serialPackageServo > 47) {
         serialPackageProgress = false;
+        Serial.println("");
       }
     }
   }
   
   for (s = 0; s < 24; s++) {
     if (servoUpdate[s] == true) {
-      if (servoValues[s] >= servoDefault[0] && servoValues[s] <= servoDefault[2]) {
+      //if (servoValues[s] >= servoDefault[0] && servoValues[s] <= servoDefault[2]) {
         servoController[s].writeMicroseconds(servoValues[s]);
-      }
+      //}
       servoUpdate[s] = false;
     }
   }
