@@ -1,10 +1,14 @@
 # Hexapod NodeJS
 
+Hardware and software still in development and may be changed!
+
 ## Hardware
- - SBC: any with i2c and nodejs
- - Servo driver: PCA9685 based
+ - SBC: almost any with NodeJS and UART/USB-host, [NanoPi Duo2](http://wiki.friendlyarm.com/wiki/index.php/NanoPi_Duo2) will be used
+ - Servo driver: Arduino MEGA based board with custom firmware (see `servo_controller_arduino_mega_2560` folder)
  - Servos: MG996 (or any other)
- - Frame: 18DOF (3 servos to 6 legs)
+ - Frame: 18DOF (6 legs, 3 servos each)
+ - Power board: 18 DC-DC based on MP2307
+ - Power supply: four 18650 20A batteries
 
 ## Software
 
@@ -139,6 +143,13 @@ Length of leg (top view): `L = sqrt((x1-x0)^2 + (y1-y0)^2)`
 TODO:
  1. check if `(x1,y1,z1)` in the sphere of Leg(id)
  2. check servos limits (or it can be permanenlty damaged)
+ 3. calculate on the frequncy that servo can handle
+ 4. Node.JS classes
+ 5. IMU
+ 6. sensors on legs to check if it is on ground
+ 7. calculate in 3D
+ 8. lidar or depth camera
+ 9. terain/climbing
 
 
 ### Body
@@ -230,6 +241,9 @@ Leg backward
 
 ```
 
-### Smooth movements
-TODO (Bezier curves? Or easy?), combine steps, etc
+### Actual Gait in the code
+`See code`. It is based on prediction of the future position (just move the same frame in time with current heading and speed) and transition from current to future position. 
+Legs are moving usign "wave" gait. Only sequince of legs are hardcoded, angles, steps, etc calculating.
 
+### Smooth movements
+`y = x^n` where `n >= 2` for nice return stroke

@@ -221,12 +221,12 @@
 				RB:  { x: -75, y: -40, z: -80 }
 			},
 			leg: {
-				LF: { AngC: { min: -50, max: 50, default: 25 }, Lc: 27, Lf: 85, Lt: 120, L: { min: 40, max: 250, default: 80 } },	// TODO min and max!!! AngF (0...90)
-				LM: { AngC: { min: -50, max: 50, default: 0 }, Lc: 27, Lf: 85, Lt: 120, L: { min: 40, max: 250, default: 80 } },
-				LB: { AngC: { min: -50, max: 50, default: -25 }, Lc: 27, Lf: 85, Lt: 120, L: { min: 40, max: 250, default: 80 } },
-				RF: { AngC: { min: -50, max: 50, default: -25 }, Lc: 27, Lf: 85, Lt: 120, L: { min: 40, max: 250, default: 80 } },
-				RM: { AngC: { min: -50, max: 50, default: 0 }, Lc: 27, Lf: 85, Lt: 120, L: { min: 40, max: 250, default: 80 } },
-				RB: { AngC: { min: -50, max: 50, default: 25 }, Lc: 27, Lf: 85, Lt: 120, L: { min: 40, max: 250, default: 80 } }
+				LF: { AngC: { min: -50, max: 50, default: 25 }, Lc: 27, Lf: 85, Lt: 120, L: { min: 40, max: 250, default: 120 } },	// TODO min and max!!! AngF (0...90)
+				LM: { AngC: { min: -50, max: 50, default: 0 }, Lc: 27, Lf: 85, Lt: 120, L: { min: 40, max: 250, default: 120 } },
+				LB: { AngC: { min: -50, max: 50, default: -25 }, Lc: 27, Lf: 85, Lt: 120, L: { min: 40, max: 250, default: 120 } },
+				RF: { AngC: { min: -50, max: 50, default: -25 }, Lc: 27, Lf: 85, Lt: 120, L: { min: 40, max: 250, default: 120 } },
+				RM: { AngC: { min: -50, max: 50, default: 0 }, Lc: 27, Lf: 85, Lt: 120, L: { min: 40, max: 250, default: 120 } },
+				RB: { AngC: { min: -50, max: 50, default: 25 }, Lc: 27, Lf: 85, Lt: 120, L: { min: 40, max: 250, default: 120 } }
 			},
 			gait: {
 				type: "RIPPLE",	// balance between stable (4 legs on the ground) and speed (not so slow as wave 1 by 1, bu not so fast as with tripod)
@@ -358,7 +358,7 @@
 	
 	
 	function getGround(x,y) {	// TODO this will be used for 3D surface only
-		return -100;
+		return -80;
 	}
 	
 	function isLegOnTheGround(ID) {
@@ -630,7 +630,7 @@
 					hexapod.dmove.leg[ID].inProgress = true;
 					hexapod.dmove.leg[ID].current_subgaitstep = 0;
 					hexapod.dmove.leg[ID].gait_z = hexapod.dmove.gait_z;
-					hexapod.dmove.leg[ID].ground_z = -100; 	// TODO, not just 80, but expected ground level
+					hexapod.dmove.leg[ID].ground_z = -80; 	// TODO, not just 80, but expected ground level
 					hexapod.dmove.leg[ID].subgaitsteps = parseInt(hexapod.dmove.smooth)*leg_steps;
 					var tmp = preCalc({
 							x: hexapod.dmove.dx/3,
