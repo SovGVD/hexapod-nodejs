@@ -1,0 +1,15 @@
+{
+  "name": "hexapod-nodejs",
+  "version": "0.0.1",
+  "description": "Hexapod algorithms implementation",
+  "main": "app.js",
+  "scripts": {
+    "start": "nodejs app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "hexapod"
+  ],
+  "author": "Gleb Devyatkin",
+  "license": "MIT"
+}
