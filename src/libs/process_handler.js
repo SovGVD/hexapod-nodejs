@@ -13,8 +13,9 @@ module.exports = function () {
 	
 	this.run = function (task) {
 		this.task = task;
-		this.processClass = require(__dirname+"/"+task.class);
+		this.processClass = require(__dirname+"/"+this.task.class);
 		this.process = new this.processClass;
+		this.process.init(JSON.parse(this.task.config));
 		//this.process.msgOut = this.msgOut;
 		this.process.run();
 		this.msgOut({ID: task.ID, status: { active: true, start_ts: this.ts()}});
