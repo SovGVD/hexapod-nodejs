@@ -2,8 +2,10 @@
 
 // Inverse Kinematics
 module.exports = function () {
+	this.loop = false;
 	this.hexapod = { };
 	
+	// some useful constants for calculations
 	this.constants = {
 		leg: {
 			LF: { Lf2: false, Lt2: false, LtLf: false, AngToBody: false },
@@ -15,6 +17,7 @@ module.exports = function () {
 		}
 	};
 	
+	// current state of the hexapod
 	this.state = {
 		body: {
 			x: 0, y: 0, z: 0, 
@@ -35,16 +38,57 @@ module.exports = function () {
 			RB: { AngC: false, AngF: false, AngT: false, x: false, y:false, z: false, L: false }
 		}
 	};
+	
+	// move data for loop/event
+	// TODO calculate steps using servo board frequency
+	this.dmove = {
+		speed: 100,
+		angspeed: 5,
+		inProgress: false,
+		dx: false,	// delta of full move
+		dy: false,
+		dAngZ: false,
+		
+		gait_z: 0,
+		
+		gaitsteps: 0,
+		current_gaitstep: 0,
+		
+		smooth: 10,	// event per gaitstep (smooth)
+		current_smooth: 0,
+		
+		step_delay: 20,	// loop delay???
+		leg: {	// TODO check if all of this in use
+			LF: { inProgress: false, gaitstep_dx: false, gaitstep_dy: false, gaitstep_dz: false, gait_z: 0, ground_z: false, current_subgaitstep: false, subgaitsteps: false },
+			LM: { inProgress: false, gaitstep_dx: false, gaitstep_dy: false, gaitstep_dz: false, gait_z: 0, ground_z: false, current_subgaitstep: false, subgaitsteps: false },
+			LB: { inProgress: false, gaitstep_dx: false, gaitstep_dy: false, gaitstep_dz: false, gait_z: 0, ground_z: false, current_subgaitstep: false, subgaitsteps: false },
+			RF: { inProgress: false, gaitstep_dx: false, gaitstep_dy: false, gaitstep_dz: false, gait_z: 0, ground_z: false, current_subgaitstep: false, subgaitsteps: false },
+			RM: { inProgress: false, gaitstep_dx: false, gaitstep_dy: false, gaitstep_dz: false, gait_z: 0, ground_z: false, current_subgaitstep: false, subgaitsteps: false },
+			RB: { inProgress: false, gaitstep_dx: false, gaitstep_dy: false, gaitstep_dz: false, gait_z: 0, ground_z: false, current_subgaitstep: false, subgaitsteps: false }
+		}
+	};
+	// moveData with vector x,y,z + AngZ (yaw)
+	// TODO get/update it from interface
+	// TODO failsafe on lost data from interface
+	this.moveData = {
+		x : 0,
+		y : 0,
+		z : 0,
+		AngZ : 0
+	};
+
 
 	this.run = function () {
 		console.log("[RUN]", "IK");	// TODO logger
-		this.initConstants();
-		this.initBody();
+		this.initLoop();
 	};
 	
 	this.init = function (_config) {
+		console.log("[INIT]", "IK");	// TODO logger
 		this.hexapod = _config;
 		this.initConstants();
+		this.initBody();
+		this.initDMove();
 	}
 
 	// IK helpers
@@ -64,6 +108,19 @@ module.exports = function () {
 	}
 
 	// Init methods
+	this.initLoop = function () {
+		this.loop = setInterval(
+			function () { 
+				this.moveToNext();
+			}.bind(this),
+			this.dmove.step_delay);
+	}
+	this.initDMove = function () {
+		this.dmove.totalsteps = this.dmove.gaitsteps*this.dmove.smooth;
+		this.dmove.gait_z = this.hexapod.config.gait.gaitZ;
+		this.dmove.gaitsteps = parseInt(this.hexapod.config.gait.sequence.length);
+	}
+	
 	this.initConstants = function () {
 		for (var i = 0; i < this.hexapod.legs.length; i++) {
 			var ID = this.hexapod.legs[i];
@@ -74,7 +131,7 @@ module.exports = function () {
 			this.constants.leg[ID].defaultX = Math.cos(this._deg2rad(this.hexapod.config.leg[ID].AngC.default+this._rad2deg(this.constants.leg[ID].AngCRad))) * this.hexapod.config.leg[ID].L.default + this.hexapod.config.body[ID].x;
 			this.constants.leg[ID].defaultY = Math.sin(this._deg2rad(this.hexapod.config.leg[ID].AngC.default+this._rad2deg(this.constants.leg[ID].AngCRad))) * this.hexapod.config.leg[ID].L.default + this.hexapod.config.body[ID].y;
 		}
-		// TODO init min/max 3d polygon for legs
+		// TODO init min/max 3d polygon for legs, including this polygons intersection
 	}
 	
 	this.initBody = function () {
@@ -222,5 +279,97 @@ module.exports = function () {
 		updateBody();
 		updateLeg();
 	}
+	
+	// move
+	// LOOP(moveToNext) -> moveToNextGait -> movetoNextGaitUpdateLeg
+	this.movetoNextGaitUpdateLeg = function (ID) {
+		if (this.dmove.leg[ID].inProgress) {
+			var g_move_progress = this.dmove.leg[ID].current_subgaitstep / this.dmove.leg[ID].subgaitsteps;
+			this.state.leg[ID].x += this.dmove.leg[ID].dx;	// probably it is a good idea to use smooth function for all axis, not only x^4 for Z axis
+			this.state.leg[ID].y += this.dmove.leg[ID].dy;
+			// Z axis on flat surface will use y=-(2*x-1)^4+1
+			// this will get us `x` [0...1] where `y` will be `0` to `1` to `0`, looks like perfect (and simple!) for leg 
+			// as in the middle it will be max and zeros at the begin and end
+			this.state.leg[ID].z = (-Math.pow(2*g_move_progress-1,4)+1) * this.dmove.leg[ID].gait_z + this.dmove.leg[ID].ground_z;
+		}
+	}
+	
+	this.moveToNextGait = function () {
+		for (var i = 0; i < this.hexapod.legs.length; i++) {
+			var ID = this.hexapod.legs[i];
+			var leg_steps = this.hexapod.config.gait.sequence[parseInt(this.dmove.current_gaitstep)][ID];
+			
+			if (this.dmove.leg[ID].inProgress) {
+				if (this.dmove.leg[ID].current_subgaitstep < this.dmove.leg[ID].subgaitsteps) {
+					// continue gait
+					this.dmove.leg[ID].current_subgaitstep++;
+					this.movetoNextGaitUpdateLeg(ID);
+				} else {
+					// gait finished
+					this.dmove.leg[ID].subgaitsteps = false;
+					this.dmove.leg[ID].current_subgaitstep = false;
+					this.dmove.leg[ID].inProgress = false;	// looks like the same
+				}
+			}
 
+			if (leg_steps > 0) {
+				if (!this.dmove.leg[ID].inProgress) {
+					// begin gait
+					this.dmove.leg[ID].inProgress = true;
+					this.dmove.leg[ID].current_subgaitstep = 0;
+					this.dmove.leg[ID].gait_z = this.dmove.gait_z;
+					this.dmove.leg[ID].ground_z = -80; 	// TODO, not just 80, but expected ground level
+					this.dmove.leg[ID].subgaitsteps = parseInt(this.dmove.smooth)*leg_steps;
+					var tmp = this.preCalculcate({
+							x: this.dmove.dx/3,
+							y: this.dmove.dy/3,
+							z: 0,
+							AngZ: this.dmove.dAngZ
+						}, ID);
+
+					this.dmove.leg[ID].dx = (tmp.leg[ID].x - this.state.leg[ID].x) / this.dmove.leg[ID].subgaitsteps;
+					this.dmove.leg[ID].dy = (tmp.leg[ID].y - this.state.leg[ID].y) / this.dmove.leg[ID].subgaitsteps;
+				}
+			}
+		}
+		this.dmove.current_smooth++;
+		if (this.dmove.current_smooth >= this.dmove.smooth) {
+			this.dmove.current_smooth = 0;
+			this.dmove.current_gaitstep++;
+			if (this.dmove.current_gaitstep >= this.dmove.gaitsteps) {
+				this.dmove.current_gaitstep = 0;
+			}
+		}
+	}
+	
+	this.moveToNext = function () {
+		if (this.dmove.inProgress) {
+			this.state.body.AngZ += this.dmove.dAngZ/this.dmove.gaitsteps;
+			this.state.body.AngZ = this._degNorm(this.state.body.AngZ);
+
+			// TODO check if some of this value can be precalculated before
+			var _tmp_cos = Math.cos(_deg2rad(hexapod.state.body.AngZ));
+			var _tmp_sin = Math.sin(_deg2rad(hexapod.state.body.AngZ));
+			this.state.body.x += (this.dmove.dx/this.dmove.totalsteps)*_tmp_cos - (this.dmove.dy/this.dmove.totalsteps)*_tmp_sin;
+			this.state.body.y += (this.dmove.dx/this.dmove.totalsteps)*_tmp_sin + (this.dmove.dy/this.dmove.totalsteps)*_tmp_cos;
+			
+			this.moveToNextGait();
+			this.update();
+			
+			// TODO send angle values to HAL
+			// TODO update servo board firmware to remove extra 3+3 servo channels
+				/*sendCmd('state', [
+					-hexapod.state.leg.LF.AngC+90, 180-hexapod.state.leg.LF.AngF, hexapod.state.leg.LF.AngT, 
+					-hexapod.state.leg.LM.AngC+90, 180-hexapod.state.leg.LM.AngF, hexapod.state.leg.LM.AngT, 
+					-hexapod.state.leg.LB.AngC+90, 180-hexapod.state.leg.LB.AngF, hexapod.state.leg.LB.AngT, 
+					90,90,90,
+					hexapod.state.leg.RF.AngC+90, 180-hexapod.state.leg.RF.AngF, hexapod.state.leg.RF.AngT, 
+					hexapod.state.leg.RM.AngC+90, 180-hexapod.state.leg.RM.AngF, hexapod.state.leg.RM.AngT, 
+					hexapod.state.leg.RB.AngC+90, 180-hexapod.state.leg.RB.AngF, hexapod.state.leg.RB.AngT,
+					90,90,90
+				]);*/
+		} else {
+			// ping
+		}
+	}
 }
