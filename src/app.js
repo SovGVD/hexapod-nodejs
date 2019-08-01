@@ -22,11 +22,25 @@ if (cluster.isMaster) {
 			'config': config.interface 
 		}
 	};
-
-
-	function messageHandler(w, msg) {
-		console.log("DBG", w.process.pid, msg);
+	
+	function dt() {
+		return new Date().toISOString();
 	}
+
+	function sendToAll(msg) {
+		for (var i in cluster.workers) {
+			try {
+				cluster.workers[i].send(msg);
+			} catch (e) {  }
+		}
+	}
+	
+	function messageHandler(w, msg) {
+		console.log(dt(),"[event]", w.process.pid, msg);
+		// send message to all workers
+		sendToAll(msg);
+	}
+	// Message from workers
 	cluster.on('message', messageHandler);
 	
 	for (var i in tasks) {
@@ -39,7 +53,7 @@ if (cluster.isMaster) {
 } else {
 	var this_process = new processHandler();
 		this_process.msgOut = function (msg) {
-			// message from to master
+			// message to master (event bus)
 			process.send(msg);
 		};
 		process.on('message', this_process.msgIn);

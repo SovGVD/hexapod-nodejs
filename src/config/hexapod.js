@@ -44,22 +44,22 @@ module.exports = {
 	},
 	
 	HAL: {
-		servo_controller: {
+		servoBoard: {
 			port: "/dev/ttyUSB0",
-			speed: 115200
+			baudRate: 115200
 		}
 	},
 	
 	interface: {
-		ws: {
-			control: {
-				port: 8081
-			}
+		gamepad: {
+			enabled: true,
 		},
-		http: {
-			control: {
-				port: 8080
-			}
+		control_ws: {
+			port: 8081
+		},
+		control_http: {
+			enabled: true,
+			port: 8080
 		}
 	}
 	

@@ -16,15 +16,16 @@ module.exports = function () {
 		this.processClass = require(__dirname+"/"+this.task.class);
 		this.process = new this.processClass;
 		this.process.init(JSON.parse(this.task.config));
-		//this.process.msgOut = this.msgOut;
+		//this.process.msgIn = this.msgIn;
+		this.process.msgOut = this.msgOut;
 		this.process.run();
-		this.msgOut({ID: task.ID, status: { active: true, start_ts: this.ts()}});
+		this.msgOut({ID: task.ID, event: "processStatus", message: { active: true, start_ts: this.ts()}});
 	};
 	
 	this.msgIn = function (msg) {
 		// message from master
 		if (this.process) {
-			//this.process.msgIn(src.msg);
+			this.process.msgIn(msg);
 		}
 	};	
 }

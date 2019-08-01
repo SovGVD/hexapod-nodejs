@@ -83,6 +83,11 @@ module.exports = function () {
 		this.initLoop();
 	};
 	
+	// Communication
+	this.msgIn = function (msg) {
+	}
+	this.msgOut = false;
+	
 	this.init = function (_config) {
 		console.log("[INIT]", "IK");	// TODO logger
 		this.hexapod = _config;
@@ -358,16 +363,15 @@ module.exports = function () {
 			
 			// TODO send angle values to HAL
 			// TODO update servo board firmware to remove extra 3+3 servo channels
-				/*sendCmd('state', [
+			this.msgOut({ ID: this.ID, event: "legsAngles", 
+				message: [
 					-hexapod.state.leg.LF.AngC+90, 180-hexapod.state.leg.LF.AngF, hexapod.state.leg.LF.AngT, 
 					-hexapod.state.leg.LM.AngC+90, 180-hexapod.state.leg.LM.AngF, hexapod.state.leg.LM.AngT, 
 					-hexapod.state.leg.LB.AngC+90, 180-hexapod.state.leg.LB.AngF, hexapod.state.leg.LB.AngT, 
-					90,90,90,
 					hexapod.state.leg.RF.AngC+90, 180-hexapod.state.leg.RF.AngF, hexapod.state.leg.RF.AngT, 
 					hexapod.state.leg.RM.AngC+90, 180-hexapod.state.leg.RM.AngF, hexapod.state.leg.RM.AngT, 
-					hexapod.state.leg.RB.AngC+90, 180-hexapod.state.leg.RB.AngF, hexapod.state.leg.RB.AngT,
-					90,90,90
-				]);*/
+					hexapod.state.leg.RB.AngC+90, 180-hexapod.state.leg.RB.AngF, hexapod.state.leg.RB.AngT
+				]});
 		} else {
 			// ping
 		}

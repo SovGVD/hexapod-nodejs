@@ -11,5 +11,10 @@
     "hexapod"
   ],
   "author": "Gleb Devyatkin",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "gamepad": "^1.6.0",
+    "serialport": "^7.1.5",
+    "ws": "^7.1.1"
+  }
 }
