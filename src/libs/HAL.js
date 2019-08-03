@@ -27,7 +27,7 @@ module.exports = function () {
 	// Communication
 	this.msgIn = function (msg) {
 		if (msg.event == 'legsAngles') {
-			//console.log("DBG", this.ID, msg.message);
+			console.log("DBG", this.ID, msg.message);
 		}
 	}
 	this.msgOut = false;
