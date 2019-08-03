@@ -7,9 +7,9 @@ var isControllerReady = false;
 const parser = new Readline()
 port.pipe(parser)
 
-var value = 1500;	// 90 deg
-var value = 2470;	// 180 deg
-var value = 530;	// 0 deg
+var value = 1500;	// 90 deg (middle)
+//var value = 2470;	// 180 deg
+//var value = 530;	// 0 deg
 
 var servoValues = [
     value, value, value, value, value, value, value, value, value, 
