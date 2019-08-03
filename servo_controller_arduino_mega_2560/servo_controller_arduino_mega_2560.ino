@@ -1,8 +1,7 @@
 #include <Servo.h>
 
 /*
- * 
- * ================================ - Arduino Mega
+ * ================================ - Arduino Mega Nano
  * USB         S oooooooooooooooooo
  *           +6v oooooooooooooooooo
  *           GND oooooooooooooooooo
@@ -24,9 +23,8 @@
  * TODO: CRC?
  */
 
-/*
-#define DEBUG // comment to disable debug
-*/
+
+//#define DEBUG // comment to disable debug
 
 Servo servoController[18];
 
@@ -40,17 +38,17 @@ unsigned int servoPins[18]={
 
 // Servo defaults (min, mid(default), max)
 unsigned int servoDefault[3]={
-    700, 1500, 2300 // TODO, check with real servos
+    600, 1500, 2400 // TODO, check with real servos
   };
 
 // Servo values
 unsigned int servoValues[18];
 
 
-// Servo status (`true` if it should be updated)
+// Servo status (`true` if it should be updated, `false` by default to not do anything on boot)
 bool servoUpdate[18]={
-    true, true, true, true, true, true, true, true, true,
-    true, true, true, true, true, true, true, true, true
+    false, false, false, false, false, false, false, false, false,
+    false, false, false, false, false, false, false, false, false
   };
 
 // Serial communication
@@ -61,19 +59,27 @@ int serialPackageServo = 0;
 int serialTmpValue = 0;
 int serialServo = 0;
 
+
 void setup() {
   Serial.begin(115200);
   Serial.println("init");
   // init default servo
   for (s = 0; s < 18; s++) {
     servoValues[s] = servoDefault[1];
+    #ifdef DEBUG
+      Serial.print("Init Servo ");
+      Serial.print(s);
+      Serial.print("-> D");
+      Serial.print(servoPins[s]);
+    #endif
     servoController[s].attach(servoPins[s], servoDefault[0], servoDefault[1]);
+    #ifdef DEBUG
+      Serial.println(" OK");
+    #endif
   }
   delay(1000);
   Serial.println("ready");
 }
-
-
 
 
 void loop() {
@@ -88,11 +94,11 @@ void loop() {
         serialTmpValue = preByte<<8 | curByte;
         serialServo = (serialPackageServo-1)/2;
         #ifdef DEBUG
-          //Serial.print("Servo ");
-          //Serial.print(serialServo, DEC);
+          Serial.print("Servo ");
+          Serial.print(serialServo, DEC);
           //Serial.print(" [");
           //Serial.print(preByte, HEX);
-          //Serial.print(" ");
+          Serial.print(" ");
           //Serial.print(curByte, HEX);
           //Serial.print(" ");
           //Serial.print("] = "),
@@ -107,11 +113,13 @@ void loop() {
       serialPackageServo++;
       if (serialPackageServo > 35) {  // 2*18-1
         serialPackageProgress = false;
-        Serial.println("");
+        #ifdef DEBUG
+          Serial.println("DONE");
+        #endif
       }
     }
   }
-  
+
   for (s = 0; s < 18; s++) {
     if (servoUpdate[s] == true) {
       servoController[s].writeMicroseconds(servoValues[s]);
