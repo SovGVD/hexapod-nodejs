@@ -38,7 +38,7 @@ unsigned int servoPins[18]={
 
 // Servo defaults (min, mid(default), max)
 unsigned int servoDefault[3]={
-    600, 1500, 2400 // TODO, check with real servos
+    500, 1500, 2500 // TODO, check with real servos
   };
 
 // Servo values
