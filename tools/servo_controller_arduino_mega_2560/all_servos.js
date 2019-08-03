@@ -7,15 +7,19 @@ var isControllerReady = false;
 const parser = new Readline()
 port.pipe(parser)
 
+var value = 1500;	// 90 deg (middle)
+//var value = 2470;	// 180 deg
+//var value = 530;	// 0 deg
+
 var servoValues = [
-    1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500,
-    1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500
+    value, value, value, value, value, value, value, value, value, 
+    value, value, value, value, value, value, value, value, value
     ];
 
 function servoControllerPackage() {
-    var tmp = Buffer.alloc(2+2*24);
+    var tmp = Buffer.alloc(2+2*18);
     tmp.writeUInt16BE(0xFFFF,0);
-    for (var i = 0; i < 24; i++) {
+    for (var i = 0; i < 18; i++) {
         tmp.writeUInt16BE(servoValues[i],i*2+2);
     }
     return tmp;
@@ -24,7 +28,7 @@ function servoControllerPackage() {
 parser.on('data', line => console.log(`> ${line}`))
 
 port.on('data', function (data) {
-  //console.log(data.toString());
+  console.log(data.toString());
     if (data.toString() == "ready\r\n") {
 		isControllerReady = true;
     }

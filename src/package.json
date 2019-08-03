@@ -1,0 +1,20 @@
+{
+  "name": "hexapod-nodejs",
+  "version": "0.0.1",
+  "description": "Hexapod algorithms implementation",
+  "main": "app.js",
+  "scripts": {
+    "start": "nodejs app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "hexapod"
+  ],
+  "author": "Gleb Devyatkin",
+  "license": "MIT",
+  "dependencies": {
+    "gamepad": "^1.6.0",
+    "serialport": "^7.1.5",
+    "ws": "^7.1.1"
+  }
+}
