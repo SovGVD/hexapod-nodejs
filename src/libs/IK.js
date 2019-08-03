@@ -58,7 +58,7 @@ module.exports = function () {
 		smooth: 10,	// event per gaitstep (smooth)
 		current_smooth: 0,
 		
-		step_delay: 20,	// loop delay???
+		step_delay: 5,	// loop delay
 		leg: {	// TODO check if all of this in use
 			LF: { inProgress: false, gaitstep_dx: false, gaitstep_dy: false, gaitstep_dz: false, gait_z: 0, ground_z: false, current_subgaitstep: false, subgaitsteps: false },
 			LM: { inProgress: false, gaitstep_dx: false, gaitstep_dy: false, gaitstep_dz: false, gait_z: 0, ground_z: false, current_subgaitstep: false, subgaitsteps: false },
@@ -318,10 +318,10 @@ module.exports = function () {
 			var g_move_progress = this.dmove.leg[ID].current_subgaitstep / this.dmove.leg[ID].subgaitsteps;
 			this.state.leg[ID].x += this.dmove.leg[ID].dx;	// probably it is a good idea to use smooth function for all axis, not only x^4 for Z axis
 			this.state.leg[ID].y += this.dmove.leg[ID].dy;
-			// Z axis on flat surface will use y=-(2*x-1)^4+1
+			// Z axis on flat surface will use y=-(2*x-1)^2+1
 			// this will get us `x` [0...1] where `y` will be `0` to `1` to `0`, looks like perfect (and simple!) for leg 
 			// as in the middle it will be max and zeros at the begin and end
-			this.state.leg[ID].z = (-Math.pow(2*g_move_progress-1,4)+1) * this.dmove.leg[ID].gait_z + this.dmove.leg[ID].ground_z;
+			this.state.leg[ID].z = (-Math.pow(2*g_move_progress-1,2)+1) * this.dmove.leg[ID].gait_z + this.dmove.leg[ID].ground_z;
 		}
 	}
 	
@@ -388,14 +388,15 @@ module.exports = function () {
 			this.moveToNextGait();
 			this.update();
 			
+			// Servo corrections only, depends on hardware
 			this.msgOut({ ID: this.ID, event: "legsAngles", 
 				message: [
-					-this.state.leg.LF.AngC+90, 180-this.state.leg.LF.AngF, this.state.leg.LF.AngT, 
-					-this.state.leg.LM.AngC+90, 180-this.state.leg.LM.AngF, this.state.leg.LM.AngT, 
-					-this.state.leg.LB.AngC+90, 180-this.state.leg.LB.AngF, this.state.leg.LB.AngT, 
-					 this.state.leg.RF.AngC+90, this.state.leg.RF.AngF, 180-this.state.leg.RF.AngT, 
-					 this.state.leg.RM.AngC+90, this.state.leg.RM.AngF, 180-this.state.leg.RM.AngT, 
-					 this.state.leg.RB.AngC+90, this.state.leg.RB.AngF, 180-this.state.leg.RB.AngT
+					-this.state.leg.LF.AngC+90, 180-this.state.leg.LF.AngF, this.state.leg.LF.AngT+this.hexapod.config.leg.LF.AngT.correction, 
+					-this.state.leg.LM.AngC+90, 180-this.state.leg.LM.AngF, this.state.leg.LM.AngT+this.hexapod.config.leg.LM.AngT.correction, 
+					-this.state.leg.LB.AngC+90, 180-this.state.leg.LB.AngF, this.state.leg.LB.AngT+this.hexapod.config.leg.LB.AngT.correction, 
+					 this.state.leg.RF.AngC+90, this.state.leg.RF.AngF, 180-this.state.leg.RF.AngT+this.hexapod.config.leg.RF.AngT.correction, 
+					 this.state.leg.RM.AngC+90, this.state.leg.RM.AngF, 180-this.state.leg.RM.AngT+this.hexapod.config.leg.RM.AngT.correction, 
+					 this.state.leg.RB.AngC+90, this.state.leg.RB.AngF, 180-this.state.leg.RB.AngT+this.hexapod.config.leg.RB.AngT.correction
 				]});
 		} else {
 			// ping
