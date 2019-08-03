@@ -182,7 +182,7 @@ module.exports = function () {
 	
 	// IK
 	this.getGround = function (x,y) {	// TODO this will be used for 3D surface only
-		return -80;
+		return -100;
 	}
 	
 	this.isLegOnTheGround = function (ID) {
@@ -349,7 +349,7 @@ module.exports = function () {
 					this.dmove.leg[ID].inProgress = true;
 					this.dmove.leg[ID].current_subgaitstep = 0;
 					this.dmove.leg[ID].gait_z = this.dmove.gait_z;
-					this.dmove.leg[ID].ground_z = -80; 	// TODO, not just 80, but expected ground level
+					this.dmove.leg[ID].ground_z = -100; 	// TODO, not just 100, but expected ground level
 					this.dmove.leg[ID].subgaitsteps = parseInt(this.dmove.smooth)*leg_steps;
 					var tmp = this.preCalculcate({
 							x: this.dmove.dx/3,
@@ -393,9 +393,9 @@ module.exports = function () {
 					-this.state.leg.LF.AngC+90, 180-this.state.leg.LF.AngF, this.state.leg.LF.AngT, 
 					-this.state.leg.LM.AngC+90, 180-this.state.leg.LM.AngF, this.state.leg.LM.AngT, 
 					-this.state.leg.LB.AngC+90, 180-this.state.leg.LB.AngF, this.state.leg.LB.AngT, 
-					this.state.leg.RF.AngC+90, 180-this.state.leg.RF.AngF, this.state.leg.RF.AngT, 
-					this.state.leg.RM.AngC+90, 180-this.state.leg.RM.AngF, this.state.leg.RM.AngT, 
-					this.state.leg.RB.AngC+90, 180-this.state.leg.RB.AngF, this.state.leg.RB.AngT
+					 this.state.leg.RF.AngC+90, this.state.leg.RF.AngF, 180-this.state.leg.RF.AngT, 
+					 this.state.leg.RM.AngC+90, this.state.leg.RM.AngF, 180-this.state.leg.RM.AngT, 
+					 this.state.leg.RB.AngC+90, this.state.leg.RB.AngF, 180-this.state.leg.RB.AngT
 				]});
 		} else {
 			// ping

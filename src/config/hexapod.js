@@ -7,20 +7,20 @@ module.exports = {
 			body: {
 				x: 0, y: 0, z: 0,
 				AngX: 0, AngY: 0, AngZ: 0,
-				LF:  { x:  75, y:  40, z: -80 },	// z is the distance from body center
-				LM:  { x:   0, y:  65, z: -80 },	// so it is e.g. -50 if we need to be on 50 above ground
-				LB:  { x: -75, y:  40, z: -80 },	// ground is mostly for the hexagon plane of legs
-				RF:  { x:  75, y: -40, z: -80 },	// TODO getGround
-				RM:  { x:   0, y: -65, z: -80 },
-				RB:  { x: -75, y: -40, z: -80 }
+				LF:  { x:  75, y:  40, z: -100 },	// z is the distance from body center
+				LM:  { x:   0, y:  65, z: -100 },	// so it is e.g. -50 if we need to be on 50 above ground
+				LB:  { x: -75, y:  40, z: -100 },	// ground is mostly for the hexagon plane of legs
+				RF:  { x:  75, y: -40, z: -100 },	// TODO getGround
+				RM:  { x:   0, y: -65, z: -100 },
+				RB:  { x: -75, y: -40, z: -100 }
 			},
 			leg: {
 				LF: { AngC: { min: -50, max: 50, default: 25 }, Lc: 27, Lf: 85, Lt: 120, L: { min: 40, max: 250, default: 120 } },	// TODO min and max!!! AngF (0...90)
 				LM: { AngC: { min: -50, max: 50, default: 0 }, Lc: 27, Lf: 85, Lt: 120, L: { min: 40, max: 250, default: 120 } },
 				LB: { AngC: { min: -50, max: 50, default: -25 }, Lc: 27, Lf: 85, Lt: 120, L: { min: 40, max: 250, default: 120 } },
-				RF: { AngC: { min: -50, max: 50, default: -25 }, Lc: 27, Lf: 85, Lt: 120, L: { min: 40, max: 250, default: 120 } },
+				RF: { AngC: { min: -50, max: 50, default: 25 }, Lc: 27, Lf: 85, Lt: 120, L: { min: 40, max: 250, default: 120 } },
 				RM: { AngC: { min: -50, max: 50, default: 0 }, Lc: 27, Lf: 85, Lt: 120, L: { min: 40, max: 250, default: 120 } },
-				RB: { AngC: { min: -50, max: 50, default: 25 }, Lc: 27, Lf: 85, Lt: 120, L: { min: 40, max: 250, default: 120 } }
+				RB: { AngC: { min: -50, max: 50, default: -25 }, Lc: 27, Lf: 85, Lt: 120, L: { min: 40, max: 250, default: 120 } }
 			},
 			gait: {
 				type: "RIPPLE",	// balance between stable (4 legs on the ground) and speed (not so slow as wave 1 by 1, bu not so fast as with tripod)
@@ -55,16 +55,16 @@ module.exports = {
 			enabled: true,
 			axis: {
 				// Mode2 as on drones
-				0: 'AngZ', 	// rotate left/right
+				0: 'x',		// move forward/backward
 				1: 'z',		// body up/down (not implemented)
 				2: 'y',		// move left/right
-				3: 'x'		// move forward/backward
+				3: 'AngZ' 	// rotate left/right
 			},
 			axis_coefficient: {
 				0: -1,
 				1: -1,
-				2: -1,
-				3: -1
+				2: 1,
+				3: 1
 			},
 			axis_deadband: {
 				0: 0.004,
