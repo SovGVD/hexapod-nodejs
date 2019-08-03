@@ -2,6 +2,7 @@
 
 // Inverse Kinematics
 module.exports = function () {
+	this.ID = "IK";
 	this.loop = false;
 	this.hexapod = { };
 	
@@ -43,7 +44,7 @@ module.exports = function () {
 	// TODO calculate steps using servo board frequency
 	this.dmove = {
 		speed: 100,
-		angspeed: 5,
+		angspeed: 2.5,
 		inProgress: false,
 		dx: false,	// delta of full move
 		dy: false,
@@ -85,7 +86,19 @@ module.exports = function () {
 	
 	// Communication
 	this.msgIn = function (msg) {
+		if (msg.event == 'moveData') {
+			//console.log("DBG", msg.ID, "->", this.ID, msg.message);
+			this.msgIn_moveData(msg.message);
+		}
 	}
+	this.msgIn_moveData = function (data) {
+		this.moveData.x = parseFloat(data.x);
+		this.moveData.y = parseFloat(data.y);
+		this.moveData.z = parseFloat(data.z);
+		this.moveData.AngZ = parseFloat(data.AngZ);
+		this.move();
+	}
+	
 	this.msgOut = false;
 	
 	this.init = function (_config) {
@@ -118,12 +131,12 @@ module.exports = function () {
 			function () { 
 				this.moveToNext();
 			}.bind(this),
-			this.dmove.step_delay);
+		this.dmove.step_delay);
 	}
 	this.initDMove = function () {
+		this.dmove.gaitsteps = parseInt(this.hexapod.config.gait.sequence.length);
 		this.dmove.totalsteps = this.dmove.gaitsteps*this.dmove.smooth;
 		this.dmove.gait_z = this.hexapod.config.gait.gaitZ;
-		this.dmove.gaitsteps = parseInt(this.hexapod.config.gait.sequence.length);
 	}
 	
 	this.initConstants = function () {
@@ -180,10 +193,11 @@ module.exports = function () {
 		return false;
 	}
 	
-	function legAng (ID) {
+	this.legAng = function (ID) {
 		// TODO, precheck leg limits:
 		// 1. create 3D polygon of max/min available positions, including angles limits
 		// 2. check if x1,y1,z1 in that polygon
+		//console.log("DBG init body", this.state.body);
 		this.state.leg[ID].L = Math.sqrt(Math.pow(this.state.leg[ID].x - this.state.body[ID].x, 2) + Math.pow(this.state.leg[ID].y - this.state.body[ID].y, 2));
 
 		/*
@@ -205,7 +219,7 @@ module.exports = function () {
 										2 * Lf * sqrt(D^2 + (L - Lc)^2)                 sqrt(D^2 + (L - Lc)^2)
 
 		*/
-		var tmp = Math.pow(this.state.body.z - this.state.leg[ID].z, 2) + Math.pow( this.state.leg[ID].L - this.config.leg[ID].Lc, 2);
+		var tmp = Math.pow(this.state.body.z - this.state.leg[ID].z, 2) + Math.pow( this.state.leg[ID].L - this.hexapod.config.leg[ID].Lc, 2);
 		this.state.leg[ID].AngF = this._rad2deg(Math.PI - Math.acos( (this.constants.leg[ID].Lf2 + tmp - this.constants.leg[ID].Lt2) / (2 * this.hexapod.config.leg[ID].Lf * Math.sqrt(tmp)) ) - Math.acos((this.state.body.z - this.state.leg[ID].z)/Math.sqrt(tmp)));
 
 		/*
@@ -281,12 +295,24 @@ module.exports = function () {
 	}
 	
 	this.update = function () {
-		updateBody();
-		updateLeg();
+		this.updateBody();
+		this.updateLeg();
 	}
 	
 	// move
 	// LOOP(moveToNext) -> moveToNextGait -> movetoNextGaitUpdateLeg
+	this.move = function() {
+		this.dmove.dAngZ = this.moveData.AngZ*this.dmove.angspeed;
+
+		this.dmove.dx = this.moveData.x*this.dmove.speed;
+		this.dmove.dy = this.moveData.y*this.dmove.speed;
+		if (this.dmove.dx !=0 || this.dmove.dy !=0 || this.dmove.dAngZ !=0) {
+			this.dmove.inProgress = true;
+		} else {
+			this.dmove.inProgress = false;
+		}
+	}
+
 	this.movetoNextGaitUpdateLeg = function (ID) {
 		if (this.dmove.leg[ID].inProgress) {
 			var g_move_progress = this.dmove.leg[ID].current_subgaitstep / this.dmove.leg[ID].subgaitsteps;
@@ -349,28 +375,27 @@ module.exports = function () {
 	
 	this.moveToNext = function () {
 		if (this.dmove.inProgress) {
+			//console.log("DBG", "move");
 			this.state.body.AngZ += this.dmove.dAngZ/this.dmove.gaitsteps;
 			this.state.body.AngZ = this._degNorm(this.state.body.AngZ);
 
 			// TODO check if some of this value can be precalculated before
-			var _tmp_cos = Math.cos(_deg2rad(hexapod.state.body.AngZ));
-			var _tmp_sin = Math.sin(_deg2rad(hexapod.state.body.AngZ));
+			var _tmp_cos = Math.cos(this._deg2rad(this.state.body.AngZ));
+			var _tmp_sin = Math.sin(this._deg2rad(this.state.body.AngZ));
 			this.state.body.x += (this.dmove.dx/this.dmove.totalsteps)*_tmp_cos - (this.dmove.dy/this.dmove.totalsteps)*_tmp_sin;
 			this.state.body.y += (this.dmove.dx/this.dmove.totalsteps)*_tmp_sin + (this.dmove.dy/this.dmove.totalsteps)*_tmp_cos;
 			
 			this.moveToNextGait();
 			this.update();
 			
-			// TODO send angle values to HAL
-			// TODO update servo board firmware to remove extra 3+3 servo channels
 			this.msgOut({ ID: this.ID, event: "legsAngles", 
 				message: [
-					-hexapod.state.leg.LF.AngC+90, 180-hexapod.state.leg.LF.AngF, hexapod.state.leg.LF.AngT, 
-					-hexapod.state.leg.LM.AngC+90, 180-hexapod.state.leg.LM.AngF, hexapod.state.leg.LM.AngT, 
-					-hexapod.state.leg.LB.AngC+90, 180-hexapod.state.leg.LB.AngF, hexapod.state.leg.LB.AngT, 
-					hexapod.state.leg.RF.AngC+90, 180-hexapod.state.leg.RF.AngF, hexapod.state.leg.RF.AngT, 
-					hexapod.state.leg.RM.AngC+90, 180-hexapod.state.leg.RM.AngF, hexapod.state.leg.RM.AngT, 
-					hexapod.state.leg.RB.AngC+90, 180-hexapod.state.leg.RB.AngF, hexapod.state.leg.RB.AngT
+					-this.state.leg.LF.AngC+90, 180-this.state.leg.LF.AngF, this.state.leg.LF.AngT, 
+					-this.state.leg.LM.AngC+90, 180-this.state.leg.LM.AngF, this.state.leg.LM.AngT, 
+					-this.state.leg.LB.AngC+90, 180-this.state.leg.LB.AngF, this.state.leg.LB.AngT, 
+					this.state.leg.RF.AngC+90, 180-this.state.leg.RF.AngF, this.state.leg.RF.AngT, 
+					this.state.leg.RM.AngC+90, 180-this.state.leg.RM.AngF, this.state.leg.RM.AngT, 
+					this.state.leg.RB.AngC+90, 180-this.state.leg.RB.AngF, this.state.leg.RB.AngT
 				]});
 		} else {
 			// ping

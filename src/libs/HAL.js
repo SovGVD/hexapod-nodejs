@@ -26,7 +26,9 @@ module.exports = function () {
 	
 	// Communication
 	this.msgIn = function (msg) {
-		// message from master (event bus)
+		if (msg.event == 'legsAngles') {
+			//console.log("DBG", this.ID, msg.message);
+		}
 	}
 	this.msgOut = false;
 
@@ -48,7 +50,7 @@ module.exports = function () {
 	}
 	
 	this.servoControllerPackage = function () {
-		var tmp = Buffer.alloc(2+2*24);
+		var tmp = Buffer.alloc(2+2*18);
 		tmp.writeUInt16BE(0xFFFF,0);
 		for (var i = 0; i < 18; i++) {
 			tmp.writeUInt16BE(servoValues[i],i*2+2);

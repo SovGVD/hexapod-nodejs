@@ -53,6 +53,25 @@ module.exports = {
 	interface: {
 		gamepad: {
 			enabled: true,
+			axis: {
+				// Mode2 as on drones
+				0: 'AngZ', 	// rotate left/right
+				1: 'z',		// body up/down (not implemented)
+				2: 'y',		// move left/right
+				3: 'x'		// move forward/backward
+			},
+			axis_coefficient: {
+				0: -1,
+				1: -1,
+				2: -1,
+				3: -1
+			},
+			axis_deadband: {
+				0: 0.004,
+				1: 0.004,
+				2: 0.004,
+				3: 0.004
+			}
 		},
 		control_ws: {
 			port: 8081

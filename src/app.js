@@ -36,7 +36,7 @@ if (cluster.isMaster) {
 	}
 	
 	function messageHandler(w, msg) {
-		console.log(dt(),"[event]", w.process.pid, msg);
+		//console.log(dt(),"[event]", w.process.pid, msg);
 		// send message to all workers
 		sendToAll(msg);
 	}
@@ -56,7 +56,7 @@ if (cluster.isMaster) {
 			// message to master (event bus)
 			process.send(msg);
 		};
-		process.on('message', this_process.msgIn);
+		process.on('message', function (msg) { this_process.msgIn(msg); } );
 		this_process.run({ 
 			'ID': process.env.ID, 
 			'class': process.env.class, 
