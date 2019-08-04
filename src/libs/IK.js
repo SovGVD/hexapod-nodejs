@@ -44,7 +44,7 @@ module.exports = function () {
 	// TODO calculate steps using servo board frequency
 	this.dmove = {
 		speed: 100,
-		angspeed: 2.5,
+		angspeed: 5,
 		inProgress: false,
 		dx: false,	// delta of full move
 		dy: false,
@@ -58,7 +58,7 @@ module.exports = function () {
 		smooth: 10,	// event per gaitstep (smooth)
 		current_smooth: 0,
 		
-		step_delay: 5,	// loop delay
+		step_delay: 20,	// loop delay
 		leg: {	// TODO check if all of this in use
 			LF: { inProgress: false, gaitstep_dx: false, gaitstep_dy: false, gaitstep_dz: false, gait_z: 0, ground_z: false, current_subgaitstep: false, subgaitsteps: false },
 			LM: { inProgress: false, gaitstep_dx: false, gaitstep_dy: false, gaitstep_dz: false, gait_z: 0, ground_z: false, current_subgaitstep: false, subgaitsteps: false },
@@ -69,7 +69,6 @@ module.exports = function () {
 		}
 	};
 	// moveData with vector x,y,z + AngZ (yaw)
-	// TODO get/update it from interface
 	// TODO failsafe on lost data from interface
 	this.moveData = {
 		x : 0,
@@ -87,7 +86,6 @@ module.exports = function () {
 	// Communication
 	this.msgIn = function (msg) {
 		if (msg.event == 'moveData') {
-			//console.log("DBG", msg.ID, "->", this.ID, msg.message);
 			this.msgIn_moveData(msg.message);
 		}
 	}
@@ -388,16 +386,7 @@ module.exports = function () {
 			this.moveToNextGait();
 			this.update();
 			
-			// Servo corrections only, depends on hardware
-			this.msgOut({ ID: this.ID, event: "legsAngles", 
-				message: [
-					-this.state.leg.LF.AngC+90, 180-this.state.leg.LF.AngF, this.state.leg.LF.AngT+this.hexapod.config.leg.LF.AngT.correction, 
-					-this.state.leg.LM.AngC+90, 180-this.state.leg.LM.AngF, this.state.leg.LM.AngT+this.hexapod.config.leg.LM.AngT.correction, 
-					-this.state.leg.LB.AngC+90, 180-this.state.leg.LB.AngF, this.state.leg.LB.AngT+this.hexapod.config.leg.LB.AngT.correction, 
-					 this.state.leg.RF.AngC+90, this.state.leg.RF.AngF, 180-this.state.leg.RF.AngT+this.hexapod.config.leg.RF.AngT.correction, 
-					 this.state.leg.RM.AngC+90, this.state.leg.RM.AngF, 180-this.state.leg.RM.AngT+this.hexapod.config.leg.RM.AngT.correction, 
-					 this.state.leg.RB.AngC+90, this.state.leg.RB.AngF, 180-this.state.leg.RB.AngT+this.hexapod.config.leg.RB.AngT.correction
-				]});
+			this.msgOut({ ID: this.ID, event: "IKState", message: this.state});
 		} else {
 			// ping
 		}

@@ -9,9 +9,7 @@ module.exports = function () {
 	this.config = {};
 	this.isServoBoardReady = false;
 	this.servoBoard = false;
-	this.servoMin = 530;	// TODO move to config
-	this.servoMax = 2470;
-	this.servoRange = this.servoMax - this.servoMin;
+	this.servoRange = {};
 	this.servoValues = [
 		1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500,
 		1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500
@@ -29,18 +27,8 @@ module.exports = function () {
 	
 	// Communication
 	this.msgIn = function (msg) {
-		if (msg.event == 'legsAngles') {
-			//console.log("DBG", this.ID, msg.message);
-			for (var i = 0; i < 18; i++) {
-				//if (i >=12 && i <= 14 ) {
-					this.servoValues[i] = parseInt((msg.message[i]/180)*this.servoRange+this.servoMin);
-				/*}else if (i >=3 && i <= 5 ) {
-					this.servoValues[i] = parseInt((msg.message[i]/180)*this.servoRange+this.servoMin);
-				} else {
-					this.servoValues[i] = 1500;
-				}*/
-			}
-			//console.log("DBG", this.servoValues);
+		if (msg.event == 'IKState') {
+			this.servoControllerUpdate(msg.message);
 			this.servoControllerSend();
 		}
 	}
@@ -61,6 +49,31 @@ module.exports = function () {
 		this.servoBoard.on('error', function(err) {
 			this.msgOut({ ID: this.ID, event: "servoBoard", message: false, error: err.message });
 		}.bind(this));
+		
+		// init servo range
+		for (var servo_num = 0; servo_num < 18; servo_num++) {
+			this.servoRange[servo_num] = this.config.servoBoard.servo[servo_num].max - this.config.servoBoard.servo[servo_num].min;
+		}
+	}
+	
+	this.deg2servo = function (deg, servo_num) {
+		// TODO limits
+		return parseInt((deg/180)*this.servoRange[servo_num]+this.config.servoBoard.servo[servo_num].min);
+	}
+	
+	this.servoControllerUpdate = function (state) {
+		var tmp = [
+			 //   Servo AngleCoxa         Servo AngleFemur                                            Servo AngleTibia
+			90-state.leg.LF.AngC,   180-state.leg.LF.AngF,       state.leg.LF.AngT+this.config.leg.LF.AngT.correction, // Left Front
+			90-state.leg.LM.AngC,   180-state.leg.LM.AngF,       state.leg.LM.AngT+this.config.leg.LM.AngT.correction, // Left Middle
+			90-state.leg.LB.AngC,   180-state.leg.LB.AngF,       state.leg.LB.AngT+this.config.leg.LB.AngT.correction, // Left Bottom
+			90+state.leg.RF.AngC,       state.leg.RF.AngF,   180-state.leg.RF.AngT+this.config.leg.RF.AngT.correction, // Right Front
+			90+state.leg.RM.AngC,       state.leg.RM.AngF,   180-state.leg.RM.AngT+this.config.leg.RM.AngT.correction, // Right Middle
+			90+state.leg.RB.AngC,       state.leg.RB.AngF,   180-state.leg.RB.AngT+this.config.leg.RB.AngT.correction  // Right Bottom
+		 ];
+		for (var servo_num = 0; servo_num < 18; servo_num++) {
+			this.servoValues[servo_num] = this.deg2servo(tmp[servo_num], servo_num);
+		}
 	}
 	
 	this.servoControllerPackage = function () {
@@ -74,14 +87,12 @@ module.exports = function () {
 	
 	this.servoControllerSend = function () {
 		var tmp = this.servoControllerPackage();
-		//console.log("Write:", tmp, this.servoValues);
-		//console.log("< ", this.servoValues.join(" "));
 		this.servoBoard.write(tmp, function(err) {
 			if (err) {
-				return console.log('Error on write: ', err.message)
+				return console.log('Error on write: ', err.message)	// TODO logger and error to event bus
 			}
-			//console.log('message written');
-		});
+			this.msgOut({ ID: this.ID, event: "servoValues", message: this.servoValues });
+		}.bind(this));
 
 	}
 

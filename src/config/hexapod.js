@@ -15,12 +15,12 @@ module.exports = {
 				RB:  { x: -75, y: -40, z: -100 }
 			},
 			leg: {
-				LF: { AngC: { min: -50, max: 50, default: 25 },  AngT: { correction: 11 }, Lc: 27, Lf: 85, Lt: 120, L: { min: 40, max: 250, default: 120 } },	// TODO min and max!!! AngF (0...90)
-				LM: { AngC: { min: -50, max: 50, default: 0 },   AngT: { correction: 11 }, Lc: 27, Lf: 85, Lt: 120, L: { min: 40, max: 250, default: 120 } },
-				LB: { AngC: { min: -50, max: 50, default: -25 }, AngT: { correction: 11 }, Lc: 27, Lf: 85, Lt: 120, L: { min: 40, max: 250, default: 120 } },
-				RF: { AngC: { min: -50, max: 50, default: 25 },  AngT: { correction: -11 }, Lc: 27, Lf: 85, Lt: 120, L: { min: 40, max: 250, default: 120 } },
-				RM: { AngC: { min: -50, max: 50, default: 0 },   AngT: { correction: -11 }, Lc: 27, Lf: 85, Lt: 120, L: { min: 40, max: 250, default: 120 } },
-				RB: { AngC: { min: -50, max: 50, default: -25 }, AngT: { correction: -11 }, Lc: 27, Lf: 85, Lt: 120, L: { min: 40, max: 250, default: 120 } }
+				LF: { AngC: { min: -50, max: 50, default: 25 },  Lc: 27, Lf: 85, Lt: 120, L: { min: 40, max: 250, default: 120 } },	// TODO min and max!!! AngF (0...90)
+				LM: { AngC: { min: -50, max: 50, default: 0 },   Lc: 27, Lf: 85, Lt: 120, L: { min: 40, max: 250, default: 120 } },
+				LB: { AngC: { min: -50, max: 50, default: -25 }, Lc: 27, Lf: 85, Lt: 120, L: { min: 40, max: 250, default: 120 } },
+				RF: { AngC: { min: -50, max: 50, default: 25 },  Lc: 27, Lf: 85, Lt: 120, L: { min: 40, max: 250, default: 120 } },
+				RM: { AngC: { min: -50, max: 50, default: 0 },   Lc: 27, Lf: 85, Lt: 120, L: { min: 40, max: 250, default: 120 } },
+				RB: { AngC: { min: -50, max: 50, default: -25 }, Lc: 27, Lf: 85, Lt: 120, L: { min: 40, max: 250, default: 120 } }
 			},
 			gait: {
 				type: "RIPPLE",	// balance between stable (4 legs on the ground) and speed (not so slow as wave 1 by 1, bu not so fast as with tripod)
@@ -46,7 +46,37 @@ module.exports = {
 	HAL: {
 		servoBoard: {
 			port: "/dev/ttyUSB0",
-			baudRate: 115200
+			baudRate: 115200,
+			servo: {
+					 0: { min: 530, max: 2470 },
+					 1: { min: 530, max: 2470 },
+					 2: { min: 530, max: 2470 },
+					 3: { min: 530, max: 2470 },
+					 4: { min: 530, max: 2470 },
+					 5: { min: 530, max: 2470 },
+					 6: { min: 530, max: 2470 },
+					 7: { min: 530, max: 2470 },
+					 8: { min: 530, max: 2470 },
+					 9: { min: 530, max: 2470 },
+					10: { min: 530, max: 2470 },
+					11: { min: 530, max: 2470 },
+					12: { min: 530, max: 2470 },
+					13: { min: 530, max: 2470 },
+					14: { min: 530, max: 2470 },
+					15: { min: 530, max: 2470 },
+					16: { min: 530, max: 2470 },
+					17: { min: 530, max: 2470 }
+			},
+			correction: {
+				leg: {
+					LF: { AngT:  11 },
+					LM: { AngT:  11 },
+					LB: { AngT:  11 },
+					RF: { AngT: -11 },
+					RM: { AngT: -11 },
+					RB: { AngT: -11 }
+				}
+			}
 		}
 	},
 	
