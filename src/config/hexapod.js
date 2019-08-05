@@ -104,11 +104,13 @@ module.exports = {
 			}
 		},
 		control_ws: {
+			enabled: true,
 			port: 8081
 		},
 		control_http: {
 			enabled: true,
-			port: 8080
+			port: 8080,
+			path: './public_html/',
 		}
 	}
 	

@@ -80,6 +80,16 @@ module.exports = function () {
 
 	this.run = function () {
 		console.log("[RUN]", "IK");	// TODO logger
+		this.initConstants();
+		this.msgOut({ ID: this.ID, event: "IKInitConstants", message: this.constants});
+		
+		this.initBody();
+		this.update();
+		this.msgOut({ ID: this.ID, event: "IKInitState", message: this.state});
+		
+		this.initDMove();
+		this.msgOut({ ID: this.ID, event: "IKInitDMove", message: this.dmove});
+		
 		this.initLoop();
 	};
 	
@@ -100,11 +110,7 @@ module.exports = function () {
 	this.msgOut = false;
 	
 	this.init = function (_config) {
-		console.log("[INIT]", "IK");	// TODO logger
 		this.hexapod = _config;
-		this.initConstants();
-		this.initBody();
-		this.initDMove();
 	}
 
 	// IK helpers
@@ -305,6 +311,7 @@ module.exports = function () {
 		this.dmove.dx = this.moveData.x*this.dmove.speed;
 		this.dmove.dy = this.moveData.y*this.dmove.speed;
 		if (this.dmove.dx !=0 || this.dmove.dy !=0 || this.dmove.dAngZ !=0) {
+			//console.log("DBGMOVE", this.moveData, this.dmove.dx, this.dmove.dy, this.dmove.dAngZ);
 			this.dmove.inProgress = true;
 		} else {
 			this.dmove.inProgress = false;

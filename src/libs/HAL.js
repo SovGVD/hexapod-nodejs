@@ -43,11 +43,11 @@ module.exports = function () {
 		this.servoBoard.on('data', function (data) {
 			if (data.toString() == "ready\r\n") {
 				this.isServoBoardReady = true;
-				this.msgOut({ ID: this.ID, event: "servoBoard", message: true });
+				this.msgOut({ ID: this.ID, event: "servoBoard", message: { success: true } });
 			}
 		}.bind(this));
 		this.servoBoard.on('error', function(err) {
-			this.msgOut({ ID: this.ID, event: "servoBoard", message: false, error: err.message });
+			this.msgOut({ ID: this.ID, event: "servoBoard", message: { success: false, error: err.message }});
 		}.bind(this));
 		
 		// init servo range
@@ -64,12 +64,12 @@ module.exports = function () {
 	this.servoControllerUpdate = function (state) {
 		var tmp = [
 			 //   Servo AngleCoxa         Servo AngleFemur                                            Servo AngleTibia
-			90-state.leg.LF.AngC,   180-state.leg.LF.AngF,       state.leg.LF.AngT+this.config.leg.LF.AngT.correction, // Left Front
-			90-state.leg.LM.AngC,   180-state.leg.LM.AngF,       state.leg.LM.AngT+this.config.leg.LM.AngT.correction, // Left Middle
-			90-state.leg.LB.AngC,   180-state.leg.LB.AngF,       state.leg.LB.AngT+this.config.leg.LB.AngT.correction, // Left Bottom
-			90+state.leg.RF.AngC,       state.leg.RF.AngF,   180-state.leg.RF.AngT+this.config.leg.RF.AngT.correction, // Right Front
-			90+state.leg.RM.AngC,       state.leg.RM.AngF,   180-state.leg.RM.AngT+this.config.leg.RM.AngT.correction, // Right Middle
-			90+state.leg.RB.AngC,       state.leg.RB.AngF,   180-state.leg.RB.AngT+this.config.leg.RB.AngT.correction  // Right Bottom
+			90-state.leg.LF.AngC,   180-state.leg.LF.AngF,       state.leg.LF.AngT+this.config.servoBoard.correction.leg.LF.AngT, // Left Front
+			90-state.leg.LM.AngC,   180-state.leg.LM.AngF,       state.leg.LM.AngT+this.config.servoBoard.correction.leg.LM.AngT, // Left Middle
+			90-state.leg.LB.AngC,   180-state.leg.LB.AngF,       state.leg.LB.AngT+this.config.servoBoard.correction.leg.LB.AngT, // Left Bottom
+			90+state.leg.RF.AngC,       state.leg.RF.AngF,   180-state.leg.RF.AngT+this.config.servoBoard.correction.leg.RF.AngT, // Right Front
+			90+state.leg.RM.AngC,       state.leg.RM.AngF,   180-state.leg.RM.AngT+this.config.servoBoard.correction.leg.RM.AngT, // Right Middle
+			90+state.leg.RB.AngC,       state.leg.RB.AngF,   180-state.leg.RB.AngT+this.config.servoBoard.correction.leg.RB.AngT  // Right Bottom
 		 ];
 		for (var servo_num = 0; servo_num < 18; servo_num++) {
 			this.servoValues[servo_num] = this.deg2servo(tmp[servo_num], servo_num);
