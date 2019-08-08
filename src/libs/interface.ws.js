@@ -9,7 +9,14 @@ module.exports = function () {
 	this.ws = false;
 	this.ws_client = false;
 	
+	this.currentData = {
+	};
+	
 	this.subscriptions = {
+		// Interface websocket events
+		'subscribed': true,
+		'unsubscribed': true,
+		
 		// Interface events
 		'interfaceConnected': false,
 		'interfaceDisconnected': false,
@@ -20,6 +27,7 @@ module.exports = function () {
 		'servoBoard': false,
 		
 		//IK events
+		'IKInitHexapod': false,
 		'IKInitConstants': false,
 		'IKInitDMove': false,
 		'IKInitState': false,
@@ -27,6 +35,7 @@ module.exports = function () {
 	};
 	
 	this.init = function (_config) {
+		console.log("[INIT]", this.ID);
 		this.config = _config;
 	}
 	this.run = function () {
@@ -40,6 +49,9 @@ module.exports = function () {
 		for (var event in this.subscriptions) {
 			eventbus.eventBus.on('_'+event, function (event, message) {
 				console.log("[event]", "\x1b[32m", this.ID, "\x1b[33m", event, "\x1b[0m" , JSON.stringify(message));
+				if (typeof this.subscriptions[event] !== undefined) {
+					this.currentData[event] = message;	// save latest details
+				}
 				this.wsSend(event, message);
 			}.bind(this, event));
 		}
@@ -66,17 +78,30 @@ module.exports = function () {
 	}
 	
 	this.wsCommand = function (message) {
+		//console.log("DBG", message, this.currentData);
 		if (message.event == 'subscribe') {
-			this.subscriptions[message.eventName] = true;
+			this.subscriptions[message.message.eventName] = true;
+			this.wsSend('subscribed', { eventName: message.message.eventName });
 		} else if (message.event == 'unsubscribe') {
-			this.subscriptions[message.eventName] = false;
+			this.subscriptions[message.message.eventName] = false;
+			this.wsSend('unsubscribed', { eventName: message.message.eventName });
+		} else if (message.event == 'get') {
+			// TODO isset
+			if (typeof this.currentData[message.message.eventName] != undefined) {
+				this.wsSend(message.message.eventName, this.currentData[message.message.eventName], true);
+			} else {
+				// TODO request data when eventName available
+				this.wsSend(message.message.eventName, false, true);	// send fail
+			}
+		} else {
+			this.wsSend(message.event, false, true);	// send fail
 		}
 	}
 	
-	this.wsSend = function (event, message) {
+	this.wsSend = function (event, message, force) {
 		// send event data to client on subscription
-		if (this.subscriptions[event]) {
-			this.ws_client.send({ event: event, payload: message });
+		if (this.subscriptions[event] || force) {
+			this.ws_client.send(JSON.stringify({ event: event, message: message }));
 		}
 	}
 }

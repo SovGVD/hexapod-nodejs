@@ -6,6 +6,8 @@ module.exports = function () {
 	this.loop = false;
 	this.hexapod = { };
 	
+	this.tmp_ground = -100;
+	
 	// some useful constants for calculations
 	this.constants = {
 		leg: {
@@ -43,7 +45,7 @@ module.exports = function () {
 	// move data for loop/event
 	// TODO calculate steps using servo board frequency
 	this.dmove = {
-		speed: 100,
+		speed: 130,
 		angspeed: 5,
 		inProgress: false,
 		dx: false,	// delta of full move
@@ -55,17 +57,17 @@ module.exports = function () {
 		gaitsteps: 0,
 		current_gaitstep: 0,
 		
-		smooth: 10,	// event per gaitstep (smooth)
+		smooth: 15,	// event per gaitstep (smooth)
 		current_smooth: 0,
 		
-		step_delay: 20,	// loop delay
-		leg: {	// TODO check if all of this in use
-			LF: { inProgress: false, gaitstep_dx: false, gaitstep_dy: false, gaitstep_dz: false, gait_z: 0, ground_z: false, current_subgaitstep: false, subgaitsteps: false },
-			LM: { inProgress: false, gaitstep_dx: false, gaitstep_dy: false, gaitstep_dz: false, gait_z: 0, ground_z: false, current_subgaitstep: false, subgaitsteps: false },
-			LB: { inProgress: false, gaitstep_dx: false, gaitstep_dy: false, gaitstep_dz: false, gait_z: 0, ground_z: false, current_subgaitstep: false, subgaitsteps: false },
-			RF: { inProgress: false, gaitstep_dx: false, gaitstep_dy: false, gaitstep_dz: false, gait_z: 0, ground_z: false, current_subgaitstep: false, subgaitsteps: false },
-			RM: { inProgress: false, gaitstep_dx: false, gaitstep_dy: false, gaitstep_dz: false, gait_z: 0, ground_z: false, current_subgaitstep: false, subgaitsteps: false },
-			RB: { inProgress: false, gaitstep_dx: false, gaitstep_dy: false, gaitstep_dz: false, gait_z: 0, ground_z: false, current_subgaitstep: false, subgaitsteps: false }
+		step_delay: 10,	// loop delay
+		leg: {
+			LF: { inProgress: false, gait_z: 0, ground_z: false, current_subgaitstep: false, subgaitsteps: false },
+			LM: { inProgress: false, gait_z: 0, ground_z: false, current_subgaitstep: false, subgaitsteps: false },
+			LB: { inProgress: false, gait_z: 0, ground_z: false, current_subgaitstep: false, subgaitsteps: false },
+			RF: { inProgress: false, gait_z: 0, ground_z: false, current_subgaitstep: false, subgaitsteps: false },
+			RM: { inProgress: false, gait_z: 0, ground_z: false, current_subgaitstep: false, subgaitsteps: false },
+			RB: { inProgress: false, gait_z: 0, ground_z: false, current_subgaitstep: false, subgaitsteps: false }
 		}
 	};
 	// moveData with vector x,y,z + AngZ (yaw)
@@ -77,9 +79,15 @@ module.exports = function () {
 		AngZ : 0
 	};
 
+	this.init = function (_config) {
+		console.log("[INIT]", "IK");	// TODO logger
+		this.hexapod = _config;
+	}
 
 	this.run = function () {
 		console.log("[RUN]", "IK");	// TODO logger
+		this.msgOut({ ID: this.ID, event: "IKInitHexapod", message: this.hexapod});
+		
 		this.initConstants();
 		this.msgOut({ ID: this.ID, event: "IKInitConstants", message: this.constants});
 		
@@ -109,10 +117,6 @@ module.exports = function () {
 	
 	this.msgOut = false;
 	
-	this.init = function (_config) {
-		this.hexapod = _config;
-	}
-
 	// IK helpers
 	this._degNorm = function (deg) {
 		while (deg > 360 || deg < 0) {
@@ -186,7 +190,7 @@ module.exports = function () {
 	
 	// IK
 	this.getGround = function (x,y) {	// TODO this will be used for 3D surface only
-		return -100;
+		return this.tmp_ground;
 	}
 	
 	this.isLegOnTheGround = function (ID) {
@@ -354,7 +358,7 @@ module.exports = function () {
 					this.dmove.leg[ID].inProgress = true;
 					this.dmove.leg[ID].current_subgaitstep = 0;
 					this.dmove.leg[ID].gait_z = this.dmove.gait_z;
-					this.dmove.leg[ID].ground_z = -100; 	// TODO, not just 100, but expected ground level
+					this.dmove.leg[ID].ground_z = this.tmp_ground; 	// TODO, not just 100, but expected ground level
 					this.dmove.leg[ID].subgaitsteps = parseInt(this.dmove.smooth)*leg_steps;
 					var tmp = this.preCalculcate({
 							x: this.dmove.dx/3,

@@ -17,6 +17,7 @@ module.exports = function () {
 
 
 	this.init = function (_config) {
+		console.log("[INIT]", "HAL");
 		this.config = _config;
 		this.initServoBoard();
 	}
@@ -63,13 +64,13 @@ module.exports = function () {
 	
 	this.servoControllerUpdate = function (state) {
 		var tmp = [
-			 //   Servo AngleCoxa         Servo AngleFemur                                            Servo AngleTibia
-			90-state.leg.LF.AngC,   180-state.leg.LF.AngF,       state.leg.LF.AngT+this.config.servoBoard.correction.leg.LF.AngT, // Left Front
-			90-state.leg.LM.AngC,   180-state.leg.LM.AngF,       state.leg.LM.AngT+this.config.servoBoard.correction.leg.LM.AngT, // Left Middle
-			90-state.leg.LB.AngC,   180-state.leg.LB.AngF,       state.leg.LB.AngT+this.config.servoBoard.correction.leg.LB.AngT, // Left Bottom
-			90+state.leg.RF.AngC,       state.leg.RF.AngF,   180-state.leg.RF.AngT+this.config.servoBoard.correction.leg.RF.AngT, // Right Front
-			90+state.leg.RM.AngC,       state.leg.RM.AngF,   180-state.leg.RM.AngT+this.config.servoBoard.correction.leg.RM.AngT, // Right Middle
-			90+state.leg.RB.AngC,       state.leg.RB.AngF,   180-state.leg.RB.AngT+this.config.servoBoard.correction.leg.RB.AngT  // Right Bottom
+			 //                                                Servo AngleCoxa                                                       Servo AngleFemur                                                       Servo AngleTibia
+			90-state.leg.LF.AngC+this.config.servoBoard.correction.leg.LF.AngC,   180-state.leg.LF.AngF+this.config.servoBoard.correction.leg.LF.AngF,       state.leg.LF.AngT+this.config.servoBoard.correction.leg.LF.AngT, // Left Front
+			90-state.leg.LM.AngC+this.config.servoBoard.correction.leg.LM.AngC,   180-state.leg.LM.AngF+this.config.servoBoard.correction.leg.LM.AngF,       state.leg.LM.AngT+this.config.servoBoard.correction.leg.LM.AngT, // Left Middle
+			90-state.leg.LB.AngC+this.config.servoBoard.correction.leg.LB.AngC,   180-state.leg.LB.AngF+this.config.servoBoard.correction.leg.LB.AngF,       state.leg.LB.AngT+this.config.servoBoard.correction.leg.LB.AngT, // Left Bottom
+			90-state.leg.RF.AngC+this.config.servoBoard.correction.leg.RF.AngC,       state.leg.RF.AngF+this.config.servoBoard.correction.leg.RF.AngF,   180-state.leg.RF.AngT+this.config.servoBoard.correction.leg.RF.AngT, // Right Front
+			90-state.leg.RM.AngC+this.config.servoBoard.correction.leg.RM.AngC,       state.leg.RM.AngF+this.config.servoBoard.correction.leg.RM.AngF,   180-state.leg.RM.AngT+this.config.servoBoard.correction.leg.RM.AngT, // Right Middle
+			90-state.leg.RB.AngC+this.config.servoBoard.correction.leg.RB.AngC,       state.leg.RB.AngF+this.config.servoBoard.correction.leg.RB.AngF,   180-state.leg.RB.AngT+this.config.servoBoard.correction.leg.RB.AngT  // Right Bottom
 		 ];
 		for (var servo_num = 0; servo_num < 18; servo_num++) {
 			this.servoValues[servo_num] = this.deg2servo(tmp[servo_num], servo_num);

@@ -19,6 +19,7 @@ module.exports = function () {
 		};
 	
 	this.init = function (_config) {
+		console.log("[INIT]", this.ID);
 		this.config = _config;
 	}
 	this.run = function () {
@@ -39,7 +40,7 @@ module.exports = function () {
 		url = this.config.path+url;
 		var type = url.split("."); 
 			type="."+type.pop(); 
-			console.log("HTTPREQ:", req.url, "as", url, "type", type);
+			//console.log("HTTPREQ:", req.url, "as", url, "type", type);
 			type = (typeof this.file2mime[type] !== undefined)?this.file2mime[type]:this.file2mime.default;
 		fs.readFile(url, { encoding: type.e }, function (type, res, err, data) {
 			if (err) {

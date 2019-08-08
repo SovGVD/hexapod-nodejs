@@ -15,12 +15,12 @@ module.exports = {
 				RB:  { x: -75, y: -40, z: -100 }
 			},
 			leg: {
-				LF: { AngC: { min: -50, max: 50, default: 25 },  Lc: 27, Lf: 85, Lt: 120, L: { min: 40, max: 250, default: 120 } },	// TODO min and max!!! AngF (0...90)
-				LM: { AngC: { min: -50, max: 50, default: 0 },   Lc: 27, Lf: 85, Lt: 120, L: { min: 40, max: 250, default: 120 } },
-				LB: { AngC: { min: -50, max: 50, default: -25 }, Lc: 27, Lf: 85, Lt: 120, L: { min: 40, max: 250, default: 120 } },
-				RF: { AngC: { min: -50, max: 50, default: 25 },  Lc: 27, Lf: 85, Lt: 120, L: { min: 40, max: 250, default: 120 } },
-				RM: { AngC: { min: -50, max: 50, default: 0 },   Lc: 27, Lf: 85, Lt: 120, L: { min: 40, max: 250, default: 120 } },
-				RB: { AngC: { min: -50, max: 50, default: -25 }, Lc: 27, Lf: 85, Lt: 120, L: { min: 40, max: 250, default: 120 } }
+				LF: { AngC: { min: -50, max: 50, default: 25 },  Lc: 28, Lf: 86, Lt: 125, L: { min: 40, max: 250, default: 120 } },	// TODO min and max!!! AngF (0...90)
+				LM: { AngC: { min: -50, max: 50, default: 0 },   Lc: 28, Lf: 86, Lt: 125, L: { min: 40, max: 250, default: 120 } },
+				LB: { AngC: { min: -50, max: 50, default: -25 }, Lc: 28, Lf: 86, Lt: 125, L: { min: 40, max: 250, default: 120 } },
+				RF: { AngC: { min: -50, max: 50, default: -25 },  Lc: 28, Lf: 86, Lt: 125, L: { min: 40, max: 250, default: 120 } },
+				RM: { AngC: { min: -50, max: 50, default: 0 },   Lc: 28, Lf: 86, Lt: 125, L: { min: 40, max: 250, default: 120 } },
+				RB: { AngC: { min: -50, max: 50, default: 25 }, Lc: 28, Lf: 86, Lt: 125, L: { min: 40, max: 250, default: 120 } }
 			},
 			gait: {
 				type: "RIPPLE",	// balance between stable (4 legs on the ground) and speed (not so slow as wave 1 by 1, bu not so fast as with tripod)
@@ -69,12 +69,12 @@ module.exports = {
 			},
 			correction: {
 				leg: {
-					LF: { AngT:  11 },
-					LM: { AngT:  11 },
-					LB: { AngT:  11 },
-					RF: { AngT: -11 },
-					RM: { AngT: -11 },
-					RB: { AngT: -11 }
+					LF: { AngC: 0, AngF: 0, AngT:  12 },
+					LM: { AngC: 0, AngF: 0, AngT:  12 },
+					LB: { AngC: 0, AngF: 0, AngT:  12 },
+					RF: { AngC: 0, AngF: 0, AngT: -12 },
+					RM: { AngC: 0, AngF: 0, AngT: -12 },
+					RB: { AngC: 0, AngF: 0, AngT: -12 }
 				}
 			}
 		}
@@ -85,16 +85,16 @@ module.exports = {
 			enabled: true,
 			axis: {
 				// Mode2 as on drones
-				0: 'x',		// move forward/backward
+				0: 'AngZ', 	// rotate left/right
 				1: 'z',		// body up/down (not implemented)
 				2: 'y',		// move left/right
-				3: 'AngZ' 	// rotate left/right
+				3: 'x',		// move forward/backward
 			},
 			axis_coefficient: {
-				0: -1,
+				0: -0.5,
 				1: -1,
-				2: 1,
-				3: 1
+				2: -1,
+				3: -1
 			},
 			axis_deadband: {
 				0: 0.004,

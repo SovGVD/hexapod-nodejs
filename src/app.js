@@ -6,20 +6,20 @@ if (cluster.isMaster) {
 // Robot tasks that will be run by process/thread
 	const config = require('./config/hexapod.js');
 	var tasks = {
-		'IK': { 
+		'INTERFACE': { 
 			'status': { 'active': false, 'start_ts': 0 }, 
-			'class': "IK.js", 
-			'config': config.hexapod 
+			'class': "interface.js", 
+			'config': config.interface 
 		},
 		'HAL': { 
 			'status': { 'active': false, 'start_ts': 0 }, 
 			'class': "HAL.js", 
 			'config': config.HAL 
 		},
-		'INTERFACE': { 
+		'IK': { 
 			'status': { 'active': false, 'start_ts': 0 }, 
-			'class': "interface.js", 
-			'config': config.interface 
+			'class': "IK.js", 
+			'config': config.hexapod 
 		}
 	};
 	

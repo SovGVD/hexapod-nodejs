@@ -24,6 +24,7 @@ module.exports = function () {
 
 	
 	this.init = function (_config) {
+		console.log("[INIT]", "interface");
 		this.config = _config;
 
 		this.initEvents();

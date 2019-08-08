@@ -3,6 +3,38 @@
 const eventbus = require("./eventbus.js");
 const gamepad = require("gamepad");
 
+	/*	
+	Gamepad	
+	       Left Stick           Right Stick	
+	    -1 ^ Axis1           -1 ^ Axis3	(x - forward/backward)
+	       |                    |	
+	-1 <---*---> Axis0   -1 <---*---> Axis2	(y - left/right)
+	       |     (AngZ)         |	
+	       v     rotate         v	
+	Dpad	
+	     Axis7	
+	     +--+	
+	     |-1|	
+	  +--+  +--+	
+	  |-1    +1|  Axis6	
+	  +--+  +--+	
+	     |+1|	
+	     +--+	
+		
+	X: Button3	
+	Y: Button4	
+	A: Button0	
+	B: Button1	
+		
+	Select: Button10	
+	Start: Button11	
+		
+	L1: Button6	
+	L2: Button2 and Axis5 with value -1 (??)	
+	R1: Button7	
+	R2: Button9 and Axis4 with value -1 (??)	
+	*/
+
 module.exports = function () {
 	this.ID = "INTERFACE.GAMEPAD";
 	this.config = {};
