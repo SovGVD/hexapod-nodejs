@@ -1,6 +1,7 @@
 'use strict'
 
-const classifyPoint = require('robust-point-in-polygon');
+const insidePolygon = require('point-in-polygon');
+const polygon = require('concaveman');
 
 // Inverse Kinematics
 module.exports = function () {
@@ -434,6 +435,7 @@ module.exports = function () {
 				supportedPolygonFlat.push([parseFloat(this.state.leg[ID].x), parseFloat(this.state.leg[ID].y)]);
 			}
 		}
+		supportedPolygonFlat = polygon(supportedPolygonFlat);
 		var legsOnTheGround = supportedPolygon.length;
 		if (legsOnTheGround => 3) {
 			// al least 3 legs on the ground!
@@ -463,7 +465,7 @@ module.exports = function () {
 					x: this.state.body.x - supportedPolygonCenter.x,  
 					y: this.state.body.y - supportedPolygonCenter.y,  
 				},
-				classifyPoint(supportedPolygonFlat, [this.state.body.x, this.state.body.y])	// does not looks like correct, probably something wrong with polygon points
+				insidePolygon([this.state.body.x, this.state.body.y], supportedPolygonFlat)	// does not looks like correct, probably something wrong with polygon points
 			);
 		}
 		return false;

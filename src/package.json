@@ -1,6 +1,6 @@
 {
   "name": "hexapod-nodejs",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Hexapod algorithms implementation",
   "main": "app.js",
   "scripts": {
@@ -13,8 +13,9 @@
   "author": "Gleb Devyatkin",
   "license": "MIT",
   "dependencies": {
+    "concaveman": "^1.1.1",
     "gamepad": "^1.6.0",
-    "robust-point-in-polygon": "^1.0.3",
+    "point-in-polygon": "^1.0.1",
     "serialport": "^7.1.5",
     "ws": "^7.1.1"
   }
