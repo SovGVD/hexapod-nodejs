@@ -14,24 +14,26 @@ module.exports = function () {
 	
 	this.subscriptions = {
 		// Interface websocket events
-		'subscribed': true,
-		'unsubscribed': true,
+		'INTERFACE.WS/subscribed': true,
+		'INTERFACE.WS/unsubscribed': true,
 		
-		// Interface events
-		'interfaceConnected': false,
-		'interfaceDisconnected': false,
-		'moveData': false,
+		// INTERFACE events
+		// INTERFACE.INOUT events
+		'INTERFACE.INPUT/interfaceConnected': false,
+		'INTERFACE.INPUT/interfaceDisconnected': false,
+		'INTERFACE.INPUT/move': false,
 		
-		//HAL events
-		'servoValues': false,
-		'servoBoard': false,
+		// HAL events
+		'HAL/servoAngles': false,
+		'HAL/servoValues': false,
+		'HAL/servoBoard': false,
 		
-		//IK events
-		'IKInitHexapod': false,
-		'IKInitConstants': false,
-		'IKInitDMove': false,
-		'IKInitState': false,
-		'IKState': false,
+		// IK events
+		'IK/InitHexapod': false,
+		'IK/InitConstants': false,
+		'IK/InitDMove': false,
+		'IK/InitState': false,
+		'IK/State': false,
 	};
 	
 	this.init = function (_config) {
@@ -78,7 +80,6 @@ module.exports = function () {
 	}
 	
 	this.wsCommand = function (message) {
-		//console.log("DBG", message, this.currentData);
 		if (message.event == 'subscribe') {
 			this.subscriptions[message.message.eventName] = true;
 			this.wsSend('subscribed', { eventName: message.message.eventName });
@@ -92,6 +93,15 @@ module.exports = function () {
 			} else {
 				// TODO request data when eventName available
 				this.wsSend(message.message.eventName, false, true);	// send fail
+			}
+		} else if (message.event == 'set') {
+			// TODO
+			// - all process should register his events/routes
+			if (message.message.eventName == 'HAL/RAWAngles') {
+				//this.msgOut({ ID: this.ID, event: 'HAL/RAWAngles', message: message.event.message});
+				eventbus.eventBus.sendEvent(message.message.eventName, { ID: this.ID, message: message.message.message });
+			} else {
+				console.log("UNKNOWN EVENT", message)
 			}
 		} else {
 			this.wsSend(message.event, false, true);	// send fail

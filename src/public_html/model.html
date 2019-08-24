@@ -210,11 +210,11 @@
 	var hexapod = {};
 	hexapod.legs = ["LF", "LM", "LB", "RF", "RM", "RB"];
 	var data = {
-			IKInitHexapod: false,
-			IKInitConstants: false,
-			IKInitState: false,
-			IKState: false,
-			servoValues: false
+			'IK/InitHexapod': false,
+			'IK/InitConstants': false,
+			'IK/InitState': false,
+			'IK/State': false,
+			'HAL/servoAngles': false,
 		};
 	
 	function _degNorm(deg) {
@@ -232,12 +232,16 @@
 		return _degNorm(180/Math.PI*rad);
 	}
 	
+	function _isset(v) {
+		return typeof v != 'undefined';
+	}
+	
 	
 
 	function updateImageBody() {
 		for (var i = 0; i < hexapod_image_objects.body_legs.length; i++) {
-			hexapod_image_objects.body.points[i].x = data.IKState.body[hexapod_image_objects.body_legs[i]].x;
-			hexapod_image_objects.body.points[i].y = data.IKState.body[hexapod_image_objects.body_legs[i]].y * -1;	// invert Y axis for display
+			hexapod_image_objects.body.points[i].x = data['IK/State'].body[hexapod_image_objects.body_legs[i]].x;
+			hexapod_image_objects.body.points[i].y = data['IK/State'].body[hexapod_image_objects.body_legs[i]].y * -1;	// invert Y axis for display
 		}
 	}
 	
@@ -247,40 +251,40 @@
 	}
 	
 	function updateImageLeg(ID) {
-		hexapod_image_objects.dbg.leg[ID].expected.x1.baseVal.value = data.IKState.body[ID].x;
-		hexapod_image_objects.dbg.leg[ID].expected.y1.baseVal.value = data.IKState.body[ID].y * -1;
-		hexapod_image_objects.dbg.leg[ID].expected.x2.baseVal.value = data.IKState.leg[ID].x;
-		hexapod_image_objects.dbg.leg[ID].expected.y2.baseVal.value = data.IKState.leg[ID].y * -1;
+		hexapod_image_objects.dbg.leg[ID].expected.x1.baseVal.value = data['IK/State'].body[ID].x;
+		hexapod_image_objects.dbg.leg[ID].expected.y1.baseVal.value = data['IK/State'].body[ID].y * -1;
+		hexapod_image_objects.dbg.leg[ID].expected.x2.baseVal.value = data['IK/State'].leg[ID].x;
+		hexapod_image_objects.dbg.leg[ID].expected.y2.baseVal.value = data['IK/State'].leg[ID].y * -1;
 
 		// calc X,Y,Z by angles
-		var tmp = data.IKInitConstants.leg[ID].AngCRad + _deg2rad(data.IKState.body.AngZ);
-		hexapod_image_objects.leg[ID].C.x1.baseVal.value = data.IKState.body[ID].x;
-		hexapod_image_objects.leg[ID].C.y1.baseVal.value = data.IKState.body[ID].y * -1;
-		hexapod_image_objects.leg[ID].C.x2.baseVal.value = data.IKInitHexapod.config.leg[ID].Lc * Math.cos(_deg2rad(data.IKState.leg[ID].AngC)+tmp) + data.IKState.body[ID].x;
-		hexapod_image_objects.leg[ID].C.y2.baseVal.value = (data.IKInitHexapod.config.leg[ID].Lc * Math.sin(_deg2rad(data.IKState.leg[ID].AngC)+tmp) + data.IKState.body[ID].y) * -1;
+		var tmp = data['IK/InitConstants'].leg[ID].AngCRad + _deg2rad(data['IK/State'].body.AngZ);
+		hexapod_image_objects.leg[ID].C.x1.baseVal.value = data['IK/State'].body[ID].x;
+		hexapod_image_objects.leg[ID].C.y1.baseVal.value = data['IK/State'].body[ID].y * -1;
+		hexapod_image_objects.leg[ID].C.x2.baseVal.value = data['IK/InitHexapod'].config.leg[ID].Lc * Math.cos(_deg2rad(data['IK/State'].leg[ID].AngC)+tmp) + data['IK/State'].body[ID].x;
+		hexapod_image_objects.leg[ID].C.y2.baseVal.value = (data['IK/InitHexapod'].config.leg[ID].Lc * Math.sin(_deg2rad(data['IK/State'].leg[ID].AngC)+tmp) + data['IK/State'].body[ID].y) * -1;
 			hexapod_image_objects.dbg.leg[ID].C.x.baseVal[0].value = hexapod_image_objects.leg[ID].C.x1.baseVal.value;
 			hexapod_image_objects.dbg.leg[ID].C.y.baseVal[0].value = hexapod_image_objects.leg[ID].C.y1.baseVal.value;
-			hexapod_image_objects.dbg.leg[ID].C.innerHTML = updateImageAngDisplay(data.IKState.leg[ID].AngC);
+			hexapod_image_objects.dbg.leg[ID].C.innerHTML = updateImageAngDisplay(data['IK/State'].leg[ID].AngC);
 
 		hexapod_image_objects.leg[ID].F.x1.baseVal.value = hexapod_image_objects.leg[ID].C.x2.baseVal.value;
 		hexapod_image_objects.leg[ID].F.y1.baseVal.value = hexapod_image_objects.leg[ID].C.y2.baseVal.value;
 			hexapod_image_objects.dbg.leg[ID].F.x.baseVal[0].value = hexapod_image_objects.leg[ID].F.x1.baseVal.value;
 			hexapod_image_objects.dbg.leg[ID].F.y.baseVal[0].value = hexapod_image_objects.leg[ID].F.y1.baseVal.value;
-			hexapod_image_objects.dbg.leg[ID].F.innerHTML = updateImageAngDisplay(data.IKState.leg[ID].AngF);
+			hexapod_image_objects.dbg.leg[ID].F.innerHTML = updateImageAngDisplay(data['IK/State'].leg[ID].AngF);
 
-		var tmpL = Math.sin(_deg2rad(data.IKState.leg[ID].AngF))*data.IKInitHexapod.config.leg[ID].Lf;
-		hexapod_image_objects.leg[ID].F.x2.baseVal.value = tmpL * Math.cos(_deg2rad(data.IKState.leg[ID].AngC)+tmp) + hexapod_image_objects.leg[ID].C.x2.baseVal.value;
-		hexapod_image_objects.leg[ID].F.y2.baseVal.value = (tmpL * Math.sin(_deg2rad(data.IKState.leg[ID].AngC)+tmp) * -1 + hexapod_image_objects.leg[ID].C.y2.baseVal.value);
+		var tmpL = Math.sin(_deg2rad(data['IK/State'].leg[ID].AngF))*data['IK/InitHexapod'].config.leg[ID].Lf;
+		hexapod_image_objects.leg[ID].F.x2.baseVal.value = tmpL * Math.cos(_deg2rad(data['IK/State'].leg[ID].AngC)+tmp) + hexapod_image_objects.leg[ID].C.x2.baseVal.value;
+		hexapod_image_objects.leg[ID].F.y2.baseVal.value = (tmpL * Math.sin(_deg2rad(data['IK/State'].leg[ID].AngC)+tmp) * -1 + hexapod_image_objects.leg[ID].C.y2.baseVal.value);
 		
 
 		hexapod_image_objects.leg[ID].T.x1.baseVal.value = hexapod_image_objects.leg[ID].F.x2.baseVal.value;
 		hexapod_image_objects.leg[ID].T.y1.baseVal.value = hexapod_image_objects.leg[ID].F.y2.baseVal.value;		
 			hexapod_image_objects.dbg.leg[ID].T.x.baseVal[0].value = hexapod_image_objects.leg[ID].T.x1.baseVal.value;
 			hexapod_image_objects.dbg.leg[ID].T.y.baseVal[0].value = hexapod_image_objects.leg[ID].T.y1.baseVal.value;
-			hexapod_image_objects.dbg.leg[ID].T.innerHTML = updateImageAngDisplay(data.IKState.leg[ID].AngT) + " z:" + (Math.round(data.IKState.leg[ID].z*10)/10);
-		var tmpL = data.IKState.leg[ID].L - tmpL - data.IKInitHexapod.config.leg[ID].Lc;
-		hexapod_image_objects.leg[ID].T.x2.baseVal.value = tmpL * Math.cos(_deg2rad(data.IKState.leg[ID].AngC)+tmp) + hexapod_image_objects.leg[ID].F.x2.baseVal.value;
-		hexapod_image_objects.leg[ID].T.y2.baseVal.value = (tmpL * Math.sin(_deg2rad(data.IKState.leg[ID].AngC)+tmp) * -1 + hexapod_image_objects.leg[ID].F.y2.baseVal.value);
+			hexapod_image_objects.dbg.leg[ID].T.innerHTML = updateImageAngDisplay(data['IK/State'].leg[ID].AngT) + " z:" + (Math.round(data['IK/State'].leg[ID].z*10)/10);
+		var tmpL = data['IK/State'].leg[ID].L - tmpL - data['IK/InitHexapod'].config.leg[ID].Lc;
+		hexapod_image_objects.leg[ID].T.x2.baseVal.value = tmpL * Math.cos(_deg2rad(data['IK/State'].leg[ID].AngC)+tmp) + hexapod_image_objects.leg[ID].F.x2.baseVal.value;
+		hexapod_image_objects.leg[ID].T.y2.baseVal.value = (tmpL * Math.sin(_deg2rad(data['IK/State'].leg[ID].AngC)+tmp) * -1 + hexapod_image_objects.leg[ID].F.y2.baseVal.value);
 		/*if (isLegOnTheGround(ID)) {
 			hexapod_image_objects.leg[ID].T.className.baseVal = 'on_the_ground';
 		} else {
@@ -291,7 +295,7 @@
 	
 	
 	function updateImage() {
-		if (data.IKInitHexapod !== false && data.IKInitConstants !== false && data.IKState !== false) {
+		if (data['IK/InitHexapod'] !== false && data['IK/InitConstants'] !== false && data['IK/State'] !== false) {
 			updateImageBody();
 			for (var i = 0; i < hexapod.legs.length; i++) {
 				//console.log("updateImageLeg", hexapod.legs[i]);
@@ -310,17 +314,17 @@
 	var ws_interface = false;
 	var host="127.0.0.1";
 	function initFeedReceive() {
-		sendCmd('get', { eventName: 'IKInitHexapod' });
-		sendCmd('get', { eventName: 'IKInitConstants' });
-		sendCmd('get', { eventName: 'IKInitState' });
-		sendCmd('get', { eventName: 'IKState' });
-		sendCmd('subscribe', { eventName: 'servoValues' });
-		sendCmd('subscribe', { eventName: 'IKState' });
+		sendCmd('get', { eventName: 'IK/InitHexapod' });
+		sendCmd('get', { eventName: 'IK/InitConstants' });
+		sendCmd('get', { eventName: 'IK/InitState' });
+		sendCmd('get', { eventName: 'IK/State' });
+		sendCmd('subscribe', { eventName: 'HAL/servoAngles' });
+		sendCmd('subscribe', { eventName: 'IK/State' });
 	}
 	function processData(msg) {
 		var tmp = JSON.parse(msg.data)
 		if (typeof data[tmp.event] !== undefined ) {
-			if (tmp.message.ID && tmp.message.message) {
+			if (_isset(tmp.message) && _isset(tmp.message.ID) && _isset(tmp.message.message)) {
 				data[tmp.event] = tmp.message.message;
 				console.log("DATA", tmp.event, data[tmp.event]);
 				updateImage();
@@ -353,6 +357,22 @@
 		}
 	}
 	initFeed();
+	
+	// SERVO DEBUG
+	/*
+		sendCmd('set', { eventName: 'HAL/RAWAngles', message: {
+				leg: {
+					LF: { AngC: 0, AngF: 0, AngT: 90 },
+					LM: { AngC: 0, AngF: 0, AngT: 90 },
+					LB: { AngC: 0, AngF: 0, AngT: 90 },
+					RF: { AngC: 0, AngF: 0, AngT: 90 },
+					RM: { AngC: 0, AngF: 0, AngT: 90 },
+					RB: { AngC: 0, AngF: 0, AngT: 90 }
+				}
+			}
+		});
+	*/
+
 
 </script>
 </body>

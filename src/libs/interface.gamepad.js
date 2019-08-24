@@ -92,7 +92,7 @@ module.exports = function () {
 			var device_id = device.vendorID+":"+device.productID;
 			if (!this.gamepads[device_id]) {
 				this.gamepads[device_id] = { num: parseInt(i), ID: device.deviceID };
-				eventbus.eventBus.sendEvent('interfaceConnected', { ID: this.ID, message: true });
+				eventbus.eventBus.sendEvent(this.ID+'/interfaceConnected', { ID: this.ID, message: true });
 			} else {
 				// update data
 				//for (var axis in this.config.axis) {
@@ -105,7 +105,7 @@ module.exports = function () {
 		for (var device_id in this.gamepads) {
 			if (this.gamepads[device_id] !==false && !gamepad.deviceAtIndex(this.gamepads[device_id].num)) {
 				this.gamepads[device_id] = false;
-				eventbus.eventBus.sendEvent('interfaceDisconnected', { ID: this.ID, message: false });
+				eventbus.eventBus.sendEvent(this.ID+'/interfaceDisconnected', { ID: this.ID, message: false });
 				this.gamepadDisconnected();
 			}
 		}
@@ -123,6 +123,6 @@ module.exports = function () {
 	}
 	
 	this.update = function () {
-		eventbus.eventBus.sendEvent('moveData', { ID: this.ID, message: this.moveData });
+		eventbus.eventBus.sendEvent(this.ID+'/move', { ID: this.ID, message: this.moveData });
 	}
 }

@@ -69,6 +69,7 @@ module.exports = {
 			},
 			correction: {
 				leg: {
+					// servo angles correction (values only for HAL output)
 					LF: { AngC: 0, AngF: 0, AngT:  12 },
 					LM: { AngC: 0, AngF: 0, AngT:  12 },
 					LB: { AngC: 0, AngF: 0, AngT:  12 },

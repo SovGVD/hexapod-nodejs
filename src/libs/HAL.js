@@ -28,7 +28,10 @@ module.exports = function () {
 	
 	// Communication
 	this.msgIn = function (msg) {
-		if (msg.event == 'IKState') {
+		if (msg.event == 'IK/State') {
+			this.servoControllerUpdate(msg.message);
+			this.servoControllerSend();
+		} else if (msg.event == 'HAL/RAWAngles') {	// input raw angles, for debug
 			this.servoControllerUpdate(msg.message);
 			this.servoControllerSend();
 		}
@@ -44,11 +47,11 @@ module.exports = function () {
 		this.servoBoard.on('data', function (data) {
 			if (data.toString() == "ready\r\n") {
 				this.isServoBoardReady = true;
-				this.msgOut({ ID: this.ID, event: "servoBoard", message: { success: true } });
+				this.msgOut({ ID: this.ID, event: this.ID+'/servoBoard', message: { success: true } });
 			}
 		}.bind(this));
 		this.servoBoard.on('error', function(err) {
-			this.msgOut({ ID: this.ID, event: "servoBoard", message: { success: false, error: err.message }});
+			this.msgOut({ ID: this.ID, event: this.ID+'/servoBoard', message: { success: false, error: err.message }});
 		}.bind(this));
 		
 		// init servo range
@@ -71,7 +74,8 @@ module.exports = function () {
 			90-state.leg.RF.AngC+this.config.servoBoard.correction.leg.RF.AngC,       state.leg.RF.AngF+this.config.servoBoard.correction.leg.RF.AngF,   180-state.leg.RF.AngT+this.config.servoBoard.correction.leg.RF.AngT, // Right Front
 			90-state.leg.RM.AngC+this.config.servoBoard.correction.leg.RM.AngC,       state.leg.RM.AngF+this.config.servoBoard.correction.leg.RM.AngF,   180-state.leg.RM.AngT+this.config.servoBoard.correction.leg.RM.AngT, // Right Middle
 			90-state.leg.RB.AngC+this.config.servoBoard.correction.leg.RB.AngC,       state.leg.RB.AngF+this.config.servoBoard.correction.leg.RB.AngF,   180-state.leg.RB.AngT+this.config.servoBoard.correction.leg.RB.AngT  // Right Bottom
-		 ];
+		];
+		this.msgOut({ ID: this.ID, event: this.ID+'/servoAngles', message: tmp });
 		for (var servo_num = 0; servo_num < 18; servo_num++) {
 			this.servoValues[servo_num] = this.deg2servo(tmp[servo_num], servo_num);
 		}
@@ -92,7 +96,7 @@ module.exports = function () {
 			if (err) {
 				return console.log('Error on write: ', err.message)	// TODO logger and error to event bus
 			}
-			this.msgOut({ ID: this.ID, event: "servoValues", message: this.servoValues });
+			this.msgOut({ ID: this.ID, event: this.ID+'/servoValues', message: this.servoValues });
 		}.bind(this));
 
 	}

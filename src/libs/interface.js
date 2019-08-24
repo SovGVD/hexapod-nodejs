@@ -11,7 +11,7 @@ const http = require("./interface.http.js");
 const ws = require("./interface.ws.js");
 
 module.exports = function () {
-	this.ID = "INTERFACE";
+	this.ID = "INTERFACE";	// namespace
 	this.config = {};
 	this.gamepad = {};
 	
@@ -58,14 +58,20 @@ module.exports = function () {
 	
 	// Communication
 	this.initEvents = function () {
-		eventbus.eventBus.on('interfaceConnected', message => {
-			this.msgOut({ ID: this.ID, event: 'interfaceConnected', message: message.message});
+		// Gamepad input
+		eventbus.eventBus.on(this.ID+'.GAMEPAD/interfaceConnected', message => {
+			this.msgOut({ ID: this.ID, event: this.ID+'.INPUT/interfaceConnected', message: message.message});
 		});
-		eventbus.eventBus.on('interfaceDisconnected', message => {
-			this.msgOut({ ID: this.ID, event: 'interfaceDisconnected', message: message.message});
+		eventbus.eventBus.on(this.ID+'.GAMEPAD/interfaceDisconnected', message => {
+			this.msgOut({ ID: this.ID, event: this.ID+'.INPUT/interfaceDisconnected', message: message.message});
 		});
-		eventbus.eventBus.on('moveData', message => {
-			this.msgOut({ ID: this.ID, event: 'moveData', message: message.message});
+		eventbus.eventBus.on(this.ID+'.GAMEPAD/move', message => {
+			this.msgOut({ ID: this.ID, event: this.ID+'.INPUT/move', message: message.message});
+		});
+
+		// WS input
+		eventbus.eventBus.on('HAL/RAWAngles', message => {
+			this.msgOut({ ID: this.ID, event: 'HAL/RAWAngles', message: message.message});
 		});
 	}
 	

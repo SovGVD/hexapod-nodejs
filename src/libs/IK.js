@@ -2,7 +2,7 @@
 
 // Inverse Kinematics
 module.exports = function () {
-	this.ID = "IK";
+	this.ID = "IK";	// namespace
 	this.loop = false;
 	this.hexapod = { };
 	
@@ -86,24 +86,24 @@ module.exports = function () {
 
 	this.run = function () {
 		console.log("[RUN]", "IK");	// TODO logger
-		this.msgOut({ ID: this.ID, event: "IKInitHexapod", message: this.hexapod});
+		this.msgOut({ ID: this.ID, event: this.ID+'/InitHexapod', message: this.hexapod});
 		
 		this.initConstants();
-		this.msgOut({ ID: this.ID, event: "IKInitConstants", message: this.constants});
+		this.msgOut({ ID: this.ID, event: this.ID+'/InitConstants', message: this.constants});
 		
 		this.initBody();
 		this.update();
-		this.msgOut({ ID: this.ID, event: "IKInitState", message: this.state});
+		this.msgOut({ ID: this.ID, event: this.ID+'/InitState', message: this.state});
 		
 		this.initDMove();
-		this.msgOut({ ID: this.ID, event: "IKInitDMove", message: this.dmove});
+		this.msgOut({ ID: this.ID, event: this.ID+'/InitDMove', message: this.dmove});
 		
 		this.initLoop();
 	};
 	
 	// Communication
 	this.msgIn = function (msg) {
-		if (msg.event == 'moveData') {
+		if (msg.event == 'INTERFACE.INPUT/move') {
 			this.msgIn_moveData(msg.message);
 		}
 	}
@@ -397,7 +397,7 @@ module.exports = function () {
 			this.moveToNextGait();
 			this.update();
 			
-			this.msgOut({ ID: this.ID, event: "IKState", message: this.state});
+			this.msgOut({ ID: this.ID, event: this.ID+'/State', message: this.state});
 		} else {
 			// ping
 		}
