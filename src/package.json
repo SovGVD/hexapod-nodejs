@@ -14,6 +14,7 @@
   "license": "MIT",
   "dependencies": {
     "gamepad": "^1.6.0",
+    "robust-point-in-polygon": "^1.0.3",
     "serialport": "^7.1.5",
     "ws": "^7.1.1"
   }

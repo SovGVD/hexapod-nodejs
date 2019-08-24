@@ -1,5 +1,7 @@
 'use strict'
 
+const classifyPoint = require('robust-point-in-polygon');
+
 // Inverse Kinematics
 module.exports = function () {
 	this.ID = "IK";	// namespace
@@ -33,12 +35,12 @@ module.exports = function () {
 			RB: { x: false, y: false, z: false },
 		},
 		leg: {
-			LF: { AngC: false, AngF: false, AngT: false, x: false, y:false, z: false, L: false },
-			LM: { AngC: false, AngF: false, AngT: false, x: false, y:false, z: false, L: false },
-			LB: { AngC: false, AngF: false, AngT: false, x: false, y:false, z: false, L: false },
-			RF: { AngC: false, AngF: false, AngT: false, x: false, y:false, z: false, L: false },
-			RM: { AngC: false, AngF: false, AngT: false, x: false, y:false, z: false, L: false },
-			RB: { AngC: false, AngF: false, AngT: false, x: false, y:false, z: false, L: false }
+			LF: { AngC: false, AngF: false, AngT: false, x: false, y:false, z: false, L: false, on_ground: true },
+			LM: { AngC: false, AngF: false, AngT: false, x: false, y:false, z: false, L: false, on_ground: true },
+			LB: { AngC: false, AngF: false, AngT: false, x: false, y:false, z: false, L: false, on_ground: true },
+			RF: { AngC: false, AngF: false, AngT: false, x: false, y:false, z: false, L: false, on_ground: true },
+			RM: { AngC: false, AngF: false, AngT: false, x: false, y:false, z: false, L: false, on_ground: true },
+			RB: { AngC: false, AngF: false, AngT: false, x: false, y:false, z: false, L: false, on_ground: true }
 		}
 	};
 	
@@ -331,10 +333,21 @@ module.exports = function () {
 			// this will get us `x` [0...1] where `y` will be `0` to `1` to `0`, looks like perfect (and simple!) for leg 
 			// as in the middle it will be max and zeros at the begin and end
 			this.state.leg[ID].z = (-Math.pow(2*g_move_progress-1,2)+1) * this.dmove.leg[ID].gait_z + this.dmove.leg[ID].ground_z;
+			if (this.isLegOnTheGround(ID)) {
+				this.state.leg[ID].on_ground = true;
+			} else {
+				this.state.leg[ID].on_ground = false;
+			}
 		}
 	}
 	
 	this.moveToNextGait = function () {
+		
+		// TODO check center of gravity (GC) somewhere there by legs on the ground
+		// if GC is too ouside of safe boundaries, don't move leg and/or put some/all of it to the ground
+		
+		this.checkBalance();
+		
 		for (var i = 0; i < this.hexapod.legs.length; i++) {
 			var ID = this.hexapod.legs[i];
 			var leg_steps = this.hexapod.config.gait.sequence[parseInt(this.dmove.current_gaitstep)][ID];
@@ -358,7 +371,7 @@ module.exports = function () {
 					this.dmove.leg[ID].inProgress = true;
 					this.dmove.leg[ID].current_subgaitstep = 0;
 					this.dmove.leg[ID].gait_z = this.dmove.gait_z;
-					this.dmove.leg[ID].ground_z = this.tmp_ground; 	// TODO, not just 100, but expected ground level
+					this.dmove.leg[ID].ground_z = this.tmp_ground;
 					this.dmove.leg[ID].subgaitsteps = parseInt(this.dmove.smooth)*leg_steps;
 					var tmp = this.preCalculcate({
 							x: this.dmove.dx/3,
@@ -401,5 +414,58 @@ module.exports = function () {
 		} else {
 			// ping
 		}
+	}
+	
+	// https://hackaday.io/project/21904-hexapod-modelling-path-planning-and-control
+	// https://hackaday.io/project/21904-hexapod-modelling-path-planning-and-control/log/62326-3-fundamentals-of-hexapod-robot
+	this.checkBalance = function () {
+		// body should be inside of leg_on_the_ground polygon
+		// TODO optimize
+		var supportedPolygon = [];
+		var supportedPolygonFlat = [];
+		for (var i = 0; i < this.hexapod.legs.length; i++) {
+			var ID = this.hexapod.legs[i];
+			if (this.state.leg[ID].on_ground) {
+				supportedPolygon.push({
+					ID: ID, 
+					x: parseFloat(this.state.leg[ID].x), 
+					y: parseFloat(this.state.leg[ID].y), 
+				});
+				supportedPolygonFlat.push([parseFloat(this.state.leg[ID].x), parseFloat(this.state.leg[ID].y)]);
+			}
+		}
+		var legsOnTheGround = supportedPolygon.length;
+		if (legsOnTheGround => 3) {
+			// al least 3 legs on the ground!
+			var supportedPolygonCenter = {
+				x: 0,
+				y: 0,
+			};
+			
+			for (var i = 0; i < legsOnTheGround; i++) {
+				supportedPolygonCenter.x += supportedPolygon[i].x;
+				supportedPolygonCenter.y += supportedPolygon[i].y;
+			}
+			supportedPolygonCenter.x = supportedPolygonCenter.x/legsOnTheGround;
+			supportedPolygonCenter.y = supportedPolygonCenter.y/legsOnTheGround;
+			
+			var stableDistance = Math.sqrt( Math.pow(this.state.body.x - supportedPolygonCenter.x, 2) + Math.pow(this.state.body.y - supportedPolygonCenter.y, 2));
+			console.log("DBG stable distance", 
+				stableDistance, 
+				{ 
+					x: this.state.body.x, 
+					y: this.state.body.y, 
+				}, 
+				supportedPolygonFlat,
+				supportedPolygonCenter, 
+				legsOnTheGround, 
+				{ 
+					x: this.state.body.x - supportedPolygonCenter.x,  
+					y: this.state.body.y - supportedPolygonCenter.y,  
+				},
+				classifyPoint(supportedPolygonFlat, [this.state.body.x, this.state.body.y])	// does not looks like correct, probably something wrong with polygon points
+			);
+		}
+		return false;
 	}
 }

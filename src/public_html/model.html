@@ -285,11 +285,11 @@
 		var tmpL = data['IK/State'].leg[ID].L - tmpL - data['IK/InitHexapod'].config.leg[ID].Lc;
 		hexapod_image_objects.leg[ID].T.x2.baseVal.value = tmpL * Math.cos(_deg2rad(data['IK/State'].leg[ID].AngC)+tmp) + hexapod_image_objects.leg[ID].F.x2.baseVal.value;
 		hexapod_image_objects.leg[ID].T.y2.baseVal.value = (tmpL * Math.sin(_deg2rad(data['IK/State'].leg[ID].AngC)+tmp) * -1 + hexapod_image_objects.leg[ID].F.y2.baseVal.value);
-		/*if (isLegOnTheGround(ID)) {
+		if (data['IK/State'].leg[ID].on_ground) {
 			hexapod_image_objects.leg[ID].T.className.baseVal = 'on_the_ground';
 		} else {
 			hexapod_image_objects.leg[ID].T.className.baseVal = '';
-		}*/
+		}
 		
 	}
 	
