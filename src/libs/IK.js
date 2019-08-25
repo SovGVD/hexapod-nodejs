@@ -9,7 +9,7 @@ module.exports = function () {
 	this.loop = false;
 	this.hexapod = { };
 	
-	this.tmp_ground = -100;
+	this.tmp_ground = -80;
 	
 	// some useful constants for calculations
 	this.constants = {
@@ -48,7 +48,7 @@ module.exports = function () {
 	// move data for loop/event
 	// TODO calculate steps using servo board frequency
 	this.dmove = {
-		speed: 130,
+		speed: 150,
 		angspeed: 5,
 		inProgress: false,
 		dx: false,	// delta of full move

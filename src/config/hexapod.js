@@ -7,20 +7,20 @@ module.exports = {
 			body: {
 				x: 0, y: 0, z: 0,
 				AngX: 0, AngY: 0, AngZ: 0,
-				LF:  { x:  75, y:  40, z: -100 },	// z is the distance from body center
-				LM:  { x:   0, y:  65, z: -100 },	// so it is e.g. -50 if we need to be on 50 above ground
-				LB:  { x: -75, y:  40, z: -100 },	// ground is mostly for the hexagon plane of legs
-				RF:  { x:  75, y: -40, z: -100 },	// TODO getGround
-				RM:  { x:   0, y: -65, z: -100 },
-				RB:  { x: -75, y: -40, z: -100 }
+				LF:  { x:  75, y:  40, z: -80 },	// z is the distance from body center
+				LM:  { x:   0, y:  65, z: -80 },	// so it is e.g. -50 if we need to be on 50 above ground
+				LB:  { x: -75, y:  40, z: -80 },	// ground is mostly for the hexagon plane of legs
+				RF:  { x:  75, y: -40, z: -80 },	// TODO getGround
+				RM:  { x:   0, y: -65, z: -80 },
+				RB:  { x: -75, y: -40, z: -80 }
 			},
 			leg: {
-				LF: { AngC: { min: -50, max: 50, default: 25 },  Lc: 28, Lf: 86, Lt: 125, L: { min: 40, max: 250, default: 120 } },	// TODO min and max!!! AngF (0...90)
-				LM: { AngC: { min: -50, max: 50, default: 0 },   Lc: 28, Lf: 86, Lt: 125, L: { min: 40, max: 250, default: 120 } },
-				LB: { AngC: { min: -50, max: 50, default: -25 }, Lc: 28, Lf: 86, Lt: 125, L: { min: 40, max: 250, default: 120 } },
-				RF: { AngC: { min: -50, max: 50, default: -25 },  Lc: 28, Lf: 86, Lt: 125, L: { min: 40, max: 250, default: 120 } },
-				RM: { AngC: { min: -50, max: 50, default: 0 },   Lc: 28, Lf: 86, Lt: 125, L: { min: 40, max: 250, default: 120 } },
-				RB: { AngC: { min: -50, max: 50, default: 25 }, Lc: 28, Lf: 86, Lt: 125, L: { min: 40, max: 250, default: 120 } }
+				LF: { AngC: { min: -50, max: 50, default: 25 },  Lc: 28, Lf: 86, Lt: 125, L: { min: 40, max: 250, default: 130 } },	// TODO min and max!!! AngF (0...90)
+				LM: { AngC: { min: -50, max: 50, default: 0 },   Lc: 28, Lf: 86, Lt: 125, L: { min: 40, max: 250, default: 130 } },
+				LB: { AngC: { min: -50, max: 50, default: -25 }, Lc: 28, Lf: 86, Lt: 125, L: { min: 40, max: 250, default: 130 } },
+				RF: { AngC: { min: -50, max: 50, default: -25 },  Lc: 28, Lf: 86, Lt: 125, L: { min: 40, max: 250, default: 130 } },
+				RM: { AngC: { min: -50, max: 50, default: 0 },   Lc: 28, Lf: 86, Lt: 125, L: { min: 40, max: 250, default: 130 } },
+				RB: { AngC: { min: -50, max: 50, default: 25 }, Lc: 28, Lf: 86, Lt: 125, L: { min: 40, max: 250, default: 130 } }
 			},
 			gait: {
 				type: "RIPPLE",	// balance between stable (4 legs on the ground) and speed (not so slow as wave 1 by 1, bu not so fast as with tripod)
@@ -70,12 +70,12 @@ module.exports = {
 			correction: {
 				leg: {
 					// servo angles correction (values only for HAL output)
-					LF: { AngC: 0, AngF: 0, AngT:  12 },
-					LM: { AngC: 0, AngF: 0, AngT:  12 },
-					LB: { AngC: 0, AngF: 0, AngT:  12 },
-					RF: { AngC: 0, AngF: 0, AngT: -12 },
-					RM: { AngC: 0, AngF: 0, AngT: -12 },
-					RB: { AngC: 0, AngF: 0, AngT: -12 }
+					LF: { AngC: 0, AngF: -3, AngT:  12+5 },
+					LM: { AngC: 0, AngF:  5, AngT:  12+14 },
+					LB: { AngC: 0, AngF:  0, AngT:  12-3 },
+					RF: { AngC: 0, AngF:  0, AngT: -12-2 },
+					RM: { AngC: 0, AngF: -2, AngT: -12-7 },
+					RB: { AngC: 0, AngF:  2, AngT: -12 }
 				}
 			}
 		}
