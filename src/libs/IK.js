@@ -37,17 +37,16 @@ module.exports = function () {
 			RB: { x: false, y: false, z: false },
 		},
 		leg: {
-			LF: { AngC: false, AngF: false, AngT: false, x: false, y:false, z: false, L: false, on_ground: true },
-			LM: { AngC: false, AngF: false, AngT: false, x: false, y:false, z: false, L: false, on_ground: true },
-			LB: { AngC: false, AngF: false, AngT: false, x: false, y:false, z: false, L: false, on_ground: true },
-			RF: { AngC: false, AngF: false, AngT: false, x: false, y:false, z: false, L: false, on_ground: true },
-			RM: { AngC: false, AngF: false, AngT: false, x: false, y:false, z: false, L: false, on_ground: true },
-			RB: { AngC: false, AngF: false, AngT: false, x: false, y:false, z: false, L: false, on_ground: true }
+			LF: { AngC: false, AngF: false, AngT: false, x: false, y:false, z: false, L: false, on_ground: true, out_of_limit: false },
+			LM: { AngC: false, AngF: false, AngT: false, x: false, y:false, z: false, L: false, on_ground: true, out_of_limit: false },
+			LB: { AngC: false, AngF: false, AngT: false, x: false, y:false, z: false, L: false, on_ground: true, out_of_limit: false },
+			RF: { AngC: false, AngF: false, AngT: false, x: false, y:false, z: false, L: false, on_ground: true, out_of_limit: false },
+			RM: { AngC: false, AngF: false, AngT: false, x: false, y:false, z: false, L: false, on_ground: true, out_of_limit: false },
+			RB: { AngC: false, AngF: false, AngT: false, x: false, y:false, z: false, L: false, on_ground: true, out_of_limit: false }
 		}
 	};
 	
 	// move data for loop/event
-	// TODO calculate steps using servo board frequency
 	this.dmove = {
 		speed: 150,
 		angspeed: 5,
@@ -64,7 +63,7 @@ module.exports = function () {
 		smooth: 15,	// event per gaitstep (smooth)
 		current_smooth: 0,
 		
-		step_delay: 10,	// loop delay
+		step_delay: 10,	// loop delay, TODO calculate steps using servo board frequency
 		leg: {
 			LF: { inProgress: false, gait_z: 0, ground_z: false, current_subgaitstep: false, subgaitsteps: false },
 			LM: { inProgress: false, gait_z: 0, ground_z: false, current_subgaitstep: false, subgaitsteps: false },
@@ -270,6 +269,39 @@ module.exports = function () {
 		*/
 		this.state.leg[ID].AngT = this._rad2deg(Math.acos((this.constants.leg[ID].Lt2 + this.constants.leg[ID].Lf2 - tmp) / (2 * this.constants.leg[ID].LtLf)));
 	}
+	
+	this.checkLegOutOfLimits = function (ID) {
+		
+		// TODO fix that state
+		return false;	// until that just ignore
+		
+		
+		
+		if (   this.state.leg[ID].AngC < this.hexapod.config.leg[ID].AngC.min || this.state.leg[ID].AngC > this.hexapod.config.leg[ID].AngC.max
+			|| this.state.leg[ID].AngF < this.hexapod.config.leg[ID].AngF.min || this.state.leg[ID].AngF > this.hexapod.config.leg[ID].AngF.max
+			|| this.state.leg[ID].AngT < this.hexapod.config.leg[ID].AngT.min || this.state.leg[ID].AngT > this.hexapod.config.leg[ID].AngT.max
+			|| this.state.leg[ID].L    < this.hexapod.config.leg[ID].L.min    || this.state.leg[ID].L    > this.hexapod.config.leg[ID].L.max
+		) {
+			this.state.leg[ID].out_of_limit = true;
+			return true;
+		}
+		this.state.leg[ID].out_of_limit = false;
+		return false;
+	}
+	
+	this.isLegOutOfLimits = function (ID) {
+		return this.state.leg[ID].out_of_limit;
+	}
+	
+	this.isSomeLegsOutOfLimits = function () {
+		for (var i = 0; i < this.hexapod.legs.length; i++) {
+			var ID = this.hexapod.legs[i];
+			if (this.isLegOutOfLimits(ID)) {
+				return true;
+			}
+		}
+		return false;
+	}
 
 
 	this.getDefaultBodyState = function (body, _ID) {
@@ -331,7 +363,9 @@ module.exports = function () {
 
 	this.updateLeg = function () {
 		for (var i = 0; i < this.hexapod.legs.length; i++) {
-			this.legAng(this.hexapod.legs[i]);
+			var ID = this.hexapod.legs[i];
+			this.legAng(ID);
+			this.checkLegOutOfLimits(ID);	// TODO IMPORTANT, do something with that!!!!
 		}
 	}
 	
@@ -371,8 +405,15 @@ module.exports = function () {
 	this.movetoNextGaitUpdateLeg = function (ID) {
 		if (this.dmove.leg[ID].inProgress) {
 			var g_move_progress = this.dmove.leg[ID].current_subgaitstep / this.dmove.leg[ID].subgaitsteps;
-			this.state.leg[ID].x += this.dmove.leg[ID].dx;	// probably it is a good idea to use smooth function for all axis, not only x^4 for Z axis
-			this.state.leg[ID].y += this.dmove.leg[ID].dy;
+			if (this.isLegOutOfLimits(ID)) {
+				// don't move leg any more, just put it on the ground
+				// TODO this is a little bit useless, as Z axis still in calculate and it can cause and issue
+				// TODO IMPORTANT recalculate nearest safe position on the ground and move leg to it
+			} else {
+				// Move leg until it is not out of limits
+				this.state.leg[ID].x += this.dmove.leg[ID].dx;
+				this.state.leg[ID].y += this.dmove.leg[ID].dy;
+			}
 			// Z axis on flat surface will use y=-(2*x-1)^2+1
 			// this will get us `x` [0...1] where `y` will be `0` to `1` to `0`, looks like perfect (and simple!) for leg 
 			// as in the middle it will be max and zeros at the begin and end
@@ -417,7 +458,7 @@ module.exports = function () {
 							z: 0,
 							AngZ: this.dmove.dAngZ
 						}, ID);
-					//console.log("DBG", tmp.leg[ID], this.state.leg[ID]);
+
 					if (!this.isLegSamePosition(ID, tmp.leg[ID])) {
 						// begin gait
 						this.dmove.leg[ID].inProgress = true;
@@ -451,8 +492,11 @@ module.exports = function () {
 			// TODO check if some of this value can be precalculated before
 			var _tmp_cos = Math.cos(this._deg2rad(this.state.body.AngZ));
 			var _tmp_sin = Math.sin(this._deg2rad(this.state.body.AngZ));
-			this.state.body.x += (this.dmove.dx/this.dmove.totalsteps)*_tmp_cos - (this.dmove.dy/this.dmove.totalsteps)*_tmp_sin;
-			this.state.body.y += (this.dmove.dx/this.dmove.totalsteps)*_tmp_sin + (this.dmove.dy/this.dmove.totalsteps)*_tmp_cos;
+			if (!this.isSomeLegsOutOfLimits()) {
+				// don't move body if some legs out of limit
+				this.state.body.x += (this.dmove.dx/this.dmove.totalsteps)*_tmp_cos - (this.dmove.dy/this.dmove.totalsteps)*_tmp_sin;
+				this.state.body.y += (this.dmove.dx/this.dmove.totalsteps)*_tmp_sin + (this.dmove.dy/this.dmove.totalsteps)*_tmp_cos;
+			}
 			
 			this.moveToNextGait();
 			this.update();

@@ -281,7 +281,7 @@
 		hexapod_image_objects.leg[ID].T.y1.baseVal.value = hexapod_image_objects.leg[ID].F.y2.baseVal.value;		
 			hexapod_image_objects.dbg.leg[ID].T.x.baseVal[0].value = hexapod_image_objects.leg[ID].T.x1.baseVal.value;
 			hexapod_image_objects.dbg.leg[ID].T.y.baseVal[0].value = hexapod_image_objects.leg[ID].T.y1.baseVal.value;
-			hexapod_image_objects.dbg.leg[ID].T.innerHTML = updateImageAngDisplay(data['IK/State'].leg[ID].AngT) + " z:" + (Math.round(data['IK/State'].leg[ID].z*10)/10);
+			hexapod_image_objects.dbg.leg[ID].T.innerHTML = updateImageAngDisplay(data['IK/State'].leg[ID].AngT) + " z:" + (Math.round(data['IK/State'].leg[ID].z*10)/10) +" L:" + (Math.round(data['IK/State'].leg[ID].L*10)/10);
 		var tmpL = data['IK/State'].leg[ID].L - tmpL - data['IK/InitHexapod'].config.leg[ID].Lc;
 		hexapod_image_objects.leg[ID].T.x2.baseVal.value = tmpL * Math.cos(_deg2rad(data['IK/State'].leg[ID].AngC)+tmp) + hexapod_image_objects.leg[ID].F.x2.baseVal.value;
 		hexapod_image_objects.leg[ID].T.y2.baseVal.value = (tmpL * Math.sin(_deg2rad(data['IK/State'].leg[ID].AngC)+tmp) * -1 + hexapod_image_objects.leg[ID].F.y2.baseVal.value);
