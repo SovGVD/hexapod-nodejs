@@ -4,6 +4,7 @@ const insidePolygon = require('point-in-polygon');
 const polygon = require('concaveman');
 
 // Inverse Kinematics
+// And a lot of other logic for movements
 module.exports = function () {
 	this.ID = "IK";	// namespace
 	this.loop = false;
@@ -196,12 +197,18 @@ module.exports = function () {
 		return this.tmp_ground;
 	}
 	
-	this.isLegOnTheGround = function (ID) {
+	this.checkLegOnTheGround = function (ID) {
 		// TODO check with sensors
 		if (this.state.leg[ID].z == this.getGround(this.state.leg[ID].x, this.state.leg[ID].y)) {
+			this.state.leg[ID].on_ground = true;
 			return true;
 		}
+		this.state.leg[ID].on_ground = false;
 		return false;
+	}
+	
+	this.isLegOnTheGround = function (ID) {
+		return this.state.leg[ID].on_ground;
 	}
 
 	this.isAllLegsOnGround = function () {
@@ -370,11 +377,7 @@ module.exports = function () {
 			// this will get us `x` [0...1] where `y` will be `0` to `1` to `0`, looks like perfect (and simple!) for leg 
 			// as in the middle it will be max and zeros at the begin and end
 			this.state.leg[ID].z = (-Math.pow(2*g_move_progress-1,2)+1) * this.dmove.leg[ID].gait_z + this.dmove.leg[ID].ground_z;
-			if (this.isLegOnTheGround(ID)) {
-				this.state.leg[ID].on_ground = true;
-			} else {
-				this.state.leg[ID].on_ground = false;
-			}
+			this.checkLegOnTheGround(ID);
 		}
 	}
 	
