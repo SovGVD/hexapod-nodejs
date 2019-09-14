@@ -203,6 +203,29 @@ module.exports = function () {
 		}
 		return false;
 	}
+
+	this.isAllLegsOnGround = function () {
+		for (var i = 0; i < this.hexapod.legs.length; i++) {
+			var ID = this.hexapod.legs[i];
+			if (!this.isLegOnTheGround(ID)) {
+				return false;
+			}
+		}
+		return true;
+	}
+	
+	this.isLegSamePosition = function (ID, tmp) {
+		var precision = 5;
+		// This is not too precision values, but should be fine for current solution
+		// see https://stackoverflow.com/questions/10015027/javascript-tofixed-not-rounding/32605063#32605063
+		if (tmp.x.toFixed(precision) == this.state.leg[ID].x.toFixed(precision) 
+			&& tmp.y.toFixed(precision) == this.state.leg[ID].y.toFixed(precision) 
+			&& tmp.z.toFixed(precision) == this.state.leg[ID].z.toFixed(precision)
+		) {
+			return true;
+		}
+		return false;
+	}
 	
 	this.legAng = function (ID) {
 		// TODO, precheck leg limits:
@@ -312,18 +335,31 @@ module.exports = function () {
 	
 	// move
 	// LOOP(moveToNext) -> moveToNextGait -> movetoNextGaitUpdateLeg
+	this.isInMove = function () {
+		return this.dmove.dx !=0 || this.dmove.dy !=0 || this.dmove.dAngZ !=0
+	}
+	
+	this.startMove = function () {
+		this.dmove.inProgress = true;
+	}
+	
+	this.stopMove = function () {
+		this.dmove.inProgress = false;
+	}
+	
 	this.move = function() {
 		this.dmove.dAngZ = this.moveData.AngZ*this.dmove.angspeed;
 
 		this.dmove.dx = this.moveData.x*this.dmove.speed;
 		this.dmove.dy = this.moveData.y*this.dmove.speed;
-		if (this.dmove.dx !=0 || this.dmove.dy !=0 || this.dmove.dAngZ !=0) {
+		if (this.isInMove() || !this.isAllLegsOnGround()) {
 			//console.log("DBGMOVE", this.moveData, this.dmove.dx, this.dmove.dy, this.dmove.dAngZ);
-			this.dmove.inProgress = true;
+			this.startMove();
 		} else {
-			this.dmove.inProgress = false;
+			this.stopMove();
 		}
 	}
+
 
 	this.movetoNextGaitUpdateLeg = function (ID) {
 		if (this.dmove.leg[ID].inProgress) {
@@ -347,7 +383,11 @@ module.exports = function () {
 		// TODO check center of gravity (GC) somewhere there by legs on the ground
 		// if GC is too ouside of safe boundaries, don't move leg and/or put some/all of it to the ground
 		
-		this.checkBalance();
+		//this.checkBalance();
+
+		if (this.isAllLegsOnGround() && !this.isInMove()) {
+			this.stopMove();
+		}
 		
 		for (var i = 0; i < this.hexapod.legs.length; i++) {
 			var ID = this.hexapod.legs[i];
@@ -368,21 +408,24 @@ module.exports = function () {
 
 			if (leg_steps > 0) {
 				if (!this.dmove.leg[ID].inProgress) {
-					// begin gait
-					this.dmove.leg[ID].inProgress = true;
-					this.dmove.leg[ID].current_subgaitstep = 0;
-					this.dmove.leg[ID].gait_z = this.dmove.gait_z;
-					this.dmove.leg[ID].ground_z = this.tmp_ground;
-					this.dmove.leg[ID].subgaitsteps = parseInt(this.dmove.smooth)*leg_steps;
 					var tmp = this.preCalculcate({
 							x: this.dmove.dx/3,
 							y: this.dmove.dy/3,
 							z: 0,
 							AngZ: this.dmove.dAngZ
 						}, ID);
+					//console.log("DBG", tmp.leg[ID], this.state.leg[ID]);
+					if (!this.isLegSamePosition(ID, tmp.leg[ID])) {
+						// begin gait
+						this.dmove.leg[ID].inProgress = true;
+						this.dmove.leg[ID].current_subgaitstep = 0;
+						this.dmove.leg[ID].gait_z = this.dmove.gait_z;
+						this.dmove.leg[ID].ground_z = this.tmp_ground;
+						this.dmove.leg[ID].subgaitsteps = parseInt(this.dmove.smooth)*leg_steps;
 
-					this.dmove.leg[ID].dx = (tmp.leg[ID].x - this.state.leg[ID].x) / this.dmove.leg[ID].subgaitsteps;
-					this.dmove.leg[ID].dy = (tmp.leg[ID].y - this.state.leg[ID].y) / this.dmove.leg[ID].subgaitsteps;
+						this.dmove.leg[ID].dx = (tmp.leg[ID].x - this.state.leg[ID].x) / this.dmove.leg[ID].subgaitsteps;
+						this.dmove.leg[ID].dy = (tmp.leg[ID].y - this.state.leg[ID].y) / this.dmove.leg[ID].subgaitsteps;
+					}
 				}
 			}
 		}
@@ -452,7 +495,7 @@ module.exports = function () {
 			supportedPolygonCenter.y = supportedPolygonCenter.y/legsOnTheGround;
 			
 			var stableDistance = Math.sqrt( Math.pow(this.state.body.x - supportedPolygonCenter.x, 2) + Math.pow(this.state.body.y - supportedPolygonCenter.y, 2));
-			console.log("DBG stable distance", 
+			/*console.log("DBG stable distance", 
 				stableDistance, 
 				{ 
 					x: this.state.body.x, 
@@ -466,7 +509,7 @@ module.exports = function () {
 					y: this.state.body.y - supportedPolygonCenter.y,  
 				},
 				insidePolygon([this.state.body.x, this.state.body.y], supportedPolygonFlat)	// does not looks like correct, probably something wrong with polygon points
-			);
+			);*/
 		}
 		return false;
 	}

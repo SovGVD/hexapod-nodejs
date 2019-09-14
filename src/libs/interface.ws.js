@@ -86,6 +86,8 @@ module.exports = function () {
 		} else if (message.event == 'unsubscribe') {
 			this.subscriptions[message.message.eventName] = false;
 			this.wsSend('unsubscribed', { eventName: message.message.eventName });
+		
+		
 		} else if (message.event == 'get') {
 			// TODO isset
 			if (typeof this.currentData[message.message.eventName] != undefined) {
@@ -94,11 +96,17 @@ module.exports = function () {
 				// TODO request data when eventName available
 				this.wsSend(message.message.eventName, false, true);	// send fail
 			}
+		
+		
 		} else if (message.event == 'set') {
+			// Input from WS.interface (browser)
 			// TODO
 			// - all process should register his events/routes
 			if (message.message.eventName == 'HAL/RAWAngles') {
-				//this.msgOut({ ID: this.ID, event: 'HAL/RAWAngles', message: message.event.message});
+				
+				eventbus.eventBus.sendEvent(message.message.eventName, { ID: this.ID, message: message.message.message });
+			} else if (message.message.eventName == 'INTERFACE.WS/move') {
+				// lets move!
 				eventbus.eventBus.sendEvent(message.message.eventName, { ID: this.ID, message: message.message.message });
 			} else {
 				console.log("UNKNOWN EVENT", message)

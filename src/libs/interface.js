@@ -73,6 +73,9 @@ module.exports = function () {
 		eventbus.eventBus.on('HAL/RAWAngles', message => {
 			this.msgOut({ ID: this.ID, event: 'HAL/RAWAngles', message: message.message});
 		});
+		eventbus.eventBus.on(this.ID+'.WS/move', message => {
+			this.msgOut({ ID: this.ID, event: this.ID+'.INPUT/move', message: message.message});
+		});
 	}
 	
 	this.msgIn = function (msg) {

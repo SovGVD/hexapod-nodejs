@@ -356,6 +356,46 @@
 			console.log("Error","Feed", "reconnect");
 		}
 	}
+	
+	var moveData = {
+		x : 0,
+		y : 0,
+		z : 0,
+		AngZ : 0
+	};
+	
+	
+	// Keyboard
+	var kMap = { };
+	function initKeyboard() {
+		document.body.onkeydown = document.body.onkeyup = function (e) { 
+			e.preventDefault();
+			kMap[e.code] = (e.type=='keydown'?true:false); 
+			keyboardEvent(e);
+		};
+	}
+	function keyboardEvent(e) {
+		if (kMap.KeyW === true || kMap.KeyA === true || kMap.KeyS === true || kMap.KeyD === true ||
+			kMap.ArrowUp === true || kMap.ArrowDown === true || kMap.ArrowLeft === true || kMap.ArrowRight === true) {
+			
+			moveData.AngZ = -0.5*(kMap.KeyA === true?-1:(kMap.KeyD === true?1:0));
+			//stickData.throttle = speed*(kMap.KeyS === true?-1:(kMap.KeyW === true?1:0));
+			moveData.y = -(kMap.ArrowLeft === true?-1:(kMap.ArrowRight === true?1:0));
+			moveData.x = (kMap.ArrowDown === true?-1:(kMap.ArrowUp === true?1:0));
+		} else {
+			moveData = {
+				x : 0,
+				y : 0,
+				z : 0,
+				AngZ : 0
+			};
+		}
+		sendCmd('set', { eventName: 'INTERFACE.WS/move', message: moveData })
+		return false;
+	}
+
+	
+	initKeyboard();
 	initFeed();
 	
 	// SERVO DEBUG
