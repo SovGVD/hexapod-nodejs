@@ -53,8 +53,13 @@ module.exports = {
 				}
 			},
 			gait: {
+				
 				type: "RIPPLE",	// balance between stable (4 legs on the ground) and speed (not so slow as wave 1 by 1, bu not so fast as with tripod)
 				gaitZ: 20,	// This is only for 2D model, in real life Z should be calculate by creating 3D surface around robot (sounds cool).
+				deltaStep: 3,
+				speed: 200,
+				smooth: 10,
+				angspeed: 10,
 				sequence: [
 					{ "LF":  0, "LM":  0, "LB":  2, "RF":  0, "RM": -1, "RB":  0 },	// 0  - on the ground (stance), 
 					{ "LF":  0, "LM":  0, "LB": -1, "RF":  2, "RM":  0, "RB":  0 }, // >0 - in the air (swing) number of steps before ground,
@@ -69,6 +74,19 @@ module.exports = {
 					{ "LF":  2, "LM":  0, "LB":  0, "RF":  0, "RM":  0, "RB": -1 },
 					{ "LF": -1, "LM":  0, "LB":  0, "RF":  0, "RM":  2, "RB":  0 }
 				]
+				
+				/*
+				type: "TRIPOD",	// speed
+				gaitZ: 20,	// This is only for 2D model, in real life Z should be calculate by creating 3D surface around robot (sounds cool).
+				deltaStep: 1.5,
+				speed: 100,
+				smooth: 15,
+				angspeed: 3,
+				sequence: [
+					{ "LF":  1, "LM":  0, "LB":  1, "RF":  0, "RM":  1, "RB":  0 },	// 0  - on the ground (stance), 
+					{ "LF":  0, "LM":  1, "LB":  0, "RF":  1, "RM":  0, "RB":  1 } // -1 - on the way to the ground (any step after), probably just ignore
+				]
+				*/
 			}
 		}
 	},

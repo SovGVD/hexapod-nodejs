@@ -48,8 +48,8 @@ module.exports = function () {
 	
 	// move data for loop/event
 	this.dmove = {
-		speed: 200,
-		angspeed: 10,
+		speed: 0,
+		angspeed: 0,
 		inProgress: false,
 		dx: false,	// delta of full move
 		dy: false,
@@ -60,7 +60,7 @@ module.exports = function () {
 		gaitsteps: 0,
 		current_gaitstep: 0,
 		
-		smooth: 10,	// event per gaitstep (smooth)
+		smooth: 0,	// event per gaitstep (smooth)
 		current_smooth: 0,
 		
 		step_delay: 10,	// loop delay, TODO calculate steps using servo board frequency
@@ -89,6 +89,11 @@ module.exports = function () {
 
 	this.run = function () {
 		console.log("[RUN]", "IK");	// TODO logger
+		
+		this.dmove.smooth   = this.hexapod.config.gait.smooth;
+		this.dmove.speed    = this.hexapod.config.gait.speed;
+		this.dmove.angspeed = this.hexapod.config.gait.angspeed;
+		
 		this.msgOut({ ID: this.ID, event: this.ID+'/InitHexapod', message: this.hexapod});
 		
 		this.initConstants();
@@ -374,6 +379,23 @@ module.exports = function () {
 		return this.dmove.dx !=0 || this.dmove.dy !=0 || this.dmove.dAngZ !=0
 	}
 	
+	this.isZeroState = function () {
+		// check if hexapod legs returned to zero state
+		for (var i = 0; i < this.hexapod.legs.length; i++) {
+			var ID = this.hexapod.legs[i];
+			var tmp = this.preCalculcate({
+					x: 0,
+					y: 0,
+					z: 0,
+					AngZ: 0
+				}, ID);
+			if (!this.isLegSamePosition(ID, tmp.leg[ID])) {
+				return false
+			}
+		}
+		return true;
+	}
+	
 	this.startMove = function () {
 		this.dmove.inProgress = true;
 	}
@@ -438,10 +460,6 @@ module.exports = function () {
 		
 		//this.checkBalance();
 
-		if (this.isAllLegsOnGround() && !this.isInMove()) {
-			this.stopMove();
-		}
-		
 		for (var i = 0; i < this.hexapod.legs.length; i++) {
 			var ID = this.hexapod.legs[i];
 			var leg_steps = this.hexapod.config.gait.sequence[parseInt(this.dmove.current_gaitstep)][ID];
@@ -463,8 +481,8 @@ module.exports = function () {
 			if (leg_steps > 0) {
 				if (!this.dmove.leg[ID].inProgress) {
 					var tmp = this.preCalculcate({
-							x: this.dmove.dx/3,
-							y: this.dmove.dy/3,
+							x: this.dmove.dx/this.hexapod.config.gait.deltaStep,
+							y: this.dmove.dy/this.hexapod.config.gait.deltaStep,
 							z: 0,
 							AngZ: this.dmove.dAngZ
 						}, ID);
@@ -493,6 +511,12 @@ module.exports = function () {
 			this.dmove.current_gaitstep++;
 			if (this.dmove.current_gaitstep >= this.dmove.gaitsteps) {
 				this.dmove.current_gaitstep = 0;
+			}
+		}
+
+		if (this.isAllLegsOnGround() && !this.isInMove()) {
+			if (this.isZeroState()) {
+				this.stopMove();
 			}
 		}
 	}
