@@ -312,7 +312,7 @@
 	
 	// Send angles to real robot
 	var ws_interface = false;
-	var host="127.0.0.1";
+	var host=location.hostname;
 	function initFeedReceive() {
 		sendCmd('get', { eventName: 'IK/InitHexapod' });
 		sendCmd('get', { eventName: 'IK/InitConstants' });
