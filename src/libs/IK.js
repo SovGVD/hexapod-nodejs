@@ -37,19 +37,19 @@ module.exports = function () {
 			RB: { x: false, y: false, z: false },
 		},
 		leg: {
-			LF: { AngC: false, AngF: false, AngT: false, x: false, y:false, z: false, L: false, on_ground: true, out_of_limit: false },
-			LM: { AngC: false, AngF: false, AngT: false, x: false, y:false, z: false, L: false, on_ground: true, out_of_limit: false },
-			LB: { AngC: false, AngF: false, AngT: false, x: false, y:false, z: false, L: false, on_ground: true, out_of_limit: false },
-			RF: { AngC: false, AngF: false, AngT: false, x: false, y:false, z: false, L: false, on_ground: true, out_of_limit: false },
-			RM: { AngC: false, AngF: false, AngT: false, x: false, y:false, z: false, L: false, on_ground: true, out_of_limit: false },
-			RB: { AngC: false, AngF: false, AngT: false, x: false, y:false, z: false, L: false, on_ground: true, out_of_limit: false }
+			LF: { AngC: false, AngF: false, AngT: false, x: false, y:false, z: false, L: false, on_ground: true, out_of_limit: false, restoring: false },
+			LM: { AngC: false, AngF: false, AngT: false, x: false, y:false, z: false, L: false, on_ground: true, out_of_limit: false, restoring: false },
+			LB: { AngC: false, AngF: false, AngT: false, x: false, y:false, z: false, L: false, on_ground: true, out_of_limit: false, restoring: false },
+			RF: { AngC: false, AngF: false, AngT: false, x: false, y:false, z: false, L: false, on_ground: true, out_of_limit: false, restoring: false },
+			RM: { AngC: false, AngF: false, AngT: false, x: false, y:false, z: false, L: false, on_ground: true, out_of_limit: false, restoring: false },
+			RB: { AngC: false, AngF: false, AngT: false, x: false, y:false, z: false, L: false, on_ground: true, out_of_limit: false, restoring: false }
 		}
 	};
 	
 	// move data for loop/event
 	this.dmove = {
-		speed: 150,
-		angspeed: 5,
+		speed: 200,
+		angspeed: 10,
 		inProgress: false,
 		dx: false,	// delta of full move
 		dy: false,
@@ -60,7 +60,7 @@ module.exports = function () {
 		gaitsteps: 0,
 		current_gaitstep: 0,
 		
-		smooth: 15,	// event per gaitstep (smooth)
+		smooth: 10,	// event per gaitstep (smooth)
 		current_smooth: 0,
 		
 		step_delay: 10,	// loop delay, TODO calculate steps using servo board frequency
@@ -271,12 +271,6 @@ module.exports = function () {
 	}
 	
 	this.checkLegOutOfLimits = function (ID) {
-		
-		// TODO fix that state
-		return false;	// until that just ignore
-		
-		
-		
 		if (   this.state.leg[ID].AngC < this.hexapod.config.leg[ID].AngC.min || this.state.leg[ID].AngC > this.hexapod.config.leg[ID].AngC.max
 			|| this.state.leg[ID].AngF < this.hexapod.config.leg[ID].AngF.min || this.state.leg[ID].AngF > this.hexapod.config.leg[ID].AngF.max
 			|| this.state.leg[ID].AngT < this.hexapod.config.leg[ID].AngT.min || this.state.leg[ID].AngT > this.hexapod.config.leg[ID].AngT.max
@@ -365,7 +359,7 @@ module.exports = function () {
 		for (var i = 0; i < this.hexapod.legs.length; i++) {
 			var ID = this.hexapod.legs[i];
 			this.legAng(ID);
-			this.checkLegOutOfLimits(ID);	// TODO IMPORTANT, do something with that!!!!
+			this.checkLegOutOfLimits(ID);
 		}
 	}
 	
@@ -405,15 +399,30 @@ module.exports = function () {
 	this.movetoNextGaitUpdateLeg = function (ID) {
 		if (this.dmove.leg[ID].inProgress) {
 			var g_move_progress = this.dmove.leg[ID].current_subgaitstep / this.dmove.leg[ID].subgaitsteps;
-			if (this.isLegOutOfLimits(ID)) {
+			if (this.isLegOutOfLimits(ID) && !this.state.leg[ID].restoring) {
 				// don't move leg any more, just put it on the ground
 				// TODO this is a little bit useless, as Z axis still in calculate and it can cause and issue
-				// TODO IMPORTANT recalculate nearest safe position on the ground and move leg to it
+				// recalculate nearest (default to make it simple, later this should find available position near default) safe position on the ground and move leg to it
+				var tmp = this.preCalculcate({
+						x: 0,
+						y: 0,
+						z: 0,
+						AngZ: 0
+					}, ID);
+				// set new deltas for leg to move to the safe position ASAP
+				//if (g_move_progress > 0.7) {
+					// as most the gait finished, it is better to restart gait
+					//this.dmove.current_smooth = 0;
+					//this.dmove.leg[ID].subgaitsteps = 0;
+				//}
+				this.dmove.leg[ID].dx = (tmp.leg[ID].x - this.state.leg[ID].x) / (this.dmove.leg[ID].subgaitsteps - this.dmove.leg[ID].current_subgaitstep);
+				this.dmove.leg[ID].dy = (tmp.leg[ID].y - this.state.leg[ID].y) / (this.dmove.leg[ID].subgaitsteps - this.dmove.leg[ID].current_subgaitstep);
+				this.state.leg[ID].restoring = true;
 			} else {
-				// Move leg until it is not out of limits
 				this.state.leg[ID].x += this.dmove.leg[ID].dx;
 				this.state.leg[ID].y += this.dmove.leg[ID].dy;
 			}
+
 			// Z axis on flat surface will use y=-(2*x-1)^2+1
 			// this will get us `x` [0...1] where `y` will be `0` to `1` to `0`, looks like perfect (and simple!) for leg 
 			// as in the middle it will be max and zeros at the begin and end
@@ -447,6 +456,7 @@ module.exports = function () {
 					this.dmove.leg[ID].subgaitsteps = false;
 					this.dmove.leg[ID].current_subgaitstep = false;
 					this.dmove.leg[ID].inProgress = false;	// looks like the same
+					this.state.leg[ID].restoring = false;
 				}
 			}
 
@@ -459,7 +469,9 @@ module.exports = function () {
 							AngZ: this.dmove.dAngZ
 						}, ID);
 
-					if (!this.isLegSamePosition(ID, tmp.leg[ID])) {
+					if (!this.isLegSamePosition(ID, tmp.leg[ID])
+						&& (!this.isSomeLegsOutOfLimits() || this.isLegOutOfLimits(ID) )
+					) {
 						// begin gait
 						this.dmove.leg[ID].inProgress = true;
 						this.dmove.leg[ID].current_subgaitstep = 0;
@@ -469,6 +481,8 @@ module.exports = function () {
 
 						this.dmove.leg[ID].dx = (tmp.leg[ID].x - this.state.leg[ID].x) / this.dmove.leg[ID].subgaitsteps;
 						this.dmove.leg[ID].dy = (tmp.leg[ID].y - this.state.leg[ID].y) / this.dmove.leg[ID].subgaitsteps;
+					} else {
+						this.dmove.current_smooth = this.dmove.smooth;	// this will skip this gait
 					}
 				}
 			}

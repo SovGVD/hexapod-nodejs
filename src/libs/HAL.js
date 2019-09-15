@@ -61,7 +61,8 @@ module.exports = function () {
 	}
 	
 	this.deg2servo = function (deg, servo_num) {
-		// TODO limits
+		if (deg < 0) deg = 0;
+		if (deg > 180) deg = 180;
 		return parseInt((deg/180)*this.servoRange[servo_num]+this.config.servoBoard.servo[servo_num].min);
 	}
 	

@@ -19,37 +19,37 @@ module.exports = {
 					AngC: { min: -25, max:  75, default:  25 }, Lc: 28, 
 					AngF: { min:  10, max: 170, default:  90 }, Lf: 86, 
 					AngT: { min:  20, max: 160, default:  90 }, Lt: 125, 
-					L: { min: 40, max: 220, default: 130 } 
+					L: { min: 40, max: 200, default: 130 } 
 				},
 				LM: { 
 					AngC: { min: -50, max:  50, default:   0 }, Lc: 28, 
 					AngF: { min:  10, max: 170, default:  90 }, Lf: 86, 
 					AngT: { min:  20, max: 160, default:  90 }, Lt: 125, 
-					L: { min: 40, max: 220, default: 130 } 
+					L: { min: 40, max: 200, default: 130 } 
 				},
 				LB: { 
 					AngC: { min: -75, max:  25, default: -25 }, Lc: 28, 
 					AngF: { min:  10, max: 170, default:  90 }, Lf: 86, 
 					AngT: { min:  20, max: 160, default:  90 }, Lt: 125, 
-					L: { min: 40, max: 220, default: 130 } 
+					L: { min: 40, max: 200, default: 130 } 
 				},
 				RF: { 
 					AngC: { min: -75, max:  25, default: -25 }, Lc: 28, 
 					AngF: { min:  10, max: 170, default:  90 }, Lf: 86, 
 					AngT: { min:  20, max: 160, default:  90 }, Lt: 125, 
-					L: { min: 40, max: 220, default: 130 } 
+					L: { min: 40, max: 200, default: 130 } 
 				},
 				RM: { 
 					AngC: { min: -50, max:  50, default:   0 }, Lc: 28, 
 					AngF: { min:  10, max: 170, default:  90 }, Lf: 86, 
 					AngT: { min:  20, max: 160, default:  90 }, Lt: 125, 
-					L: { min: 40, max: 220, default: 130 } 
+					L: { min: 40, max: 200, default: 130 } 
 				},
 				RB: { 
 					AngC: { min: -25, max:  75, default:  25 }, Lc: 28, 
 					AngF: { min:  10, max: 170, default:  90 }, Lf: 86, 
 					AngT: { min:  20, max: 160, default:  90 }, Lt: 125, 
-					L: { min: 40, max: 220, default: 130 } 
+					L: { min: 40, max: 200, default: 130 } 
 				}
 			},
 			gait: {
