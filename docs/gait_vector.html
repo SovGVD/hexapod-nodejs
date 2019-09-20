@@ -595,10 +595,10 @@
 			var g_move_progress = hexapod.dmove.leg[ID].current_subgaitstep / hexapod.dmove.leg[ID].subgaitsteps;
 			hexapod.state.leg[ID].x += hexapod.dmove.leg[ID].dx;	// probably it is a good idea to use smooth function for all axis, not only x^4 for Z axis
 			hexapod.state.leg[ID].y += hexapod.dmove.leg[ID].dy;
-			// Z axis on flat surface will use y=-(2*x-1)^4+1
+			// Z axis on flat surface will use y=-(2*x-1)^2+1
 			// this will get us `x` [0...1] where `y` will be `0` to `1` to `0`, looks like perfect (and simple!) for leg 
 			// as in the middle it will be max and zeros at the begin and end
-			hexapod.state.leg[ID].z = (-Math.pow(2*g_move_progress-1,4)+1) * hexapod.dmove.leg[ID].gait_z + hexapod.dmove.leg[ID].ground_z;
+			hexapod.state.leg[ID].z = (-Math.pow(2*g_move_progress-1,2)+1) * hexapod.dmove.leg[ID].gait_z + hexapod.dmove.leg[ID].ground_z;
 		}
 	}
 	

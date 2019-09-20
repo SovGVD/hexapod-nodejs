@@ -9,9 +9,7 @@ module.exports = function () {
 	this.config = {};
 	this.isServoBoardReady = false;
 	this.servoBoard = false;
-	this.servoMin = 530;	// TODO move to config
-	this.servoMax = 2470;
-	this.servoRange = this.servoMax - this.servoMin;
+	this.servoRange = {};
 	this.servoValues = [
 		1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500,
 		1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500
@@ -19,6 +17,7 @@ module.exports = function () {
 
 
 	this.init = function (_config) {
+		console.log("[INIT]", "HAL");
 		this.config = _config;
 		this.initServoBoard();
 	}
@@ -29,18 +28,11 @@ module.exports = function () {
 	
 	// Communication
 	this.msgIn = function (msg) {
-		if (msg.event == 'legsAngles') {
-			//console.log("DBG", this.ID, msg.message);
-			for (var i = 0; i < 18; i++) {
-				//if (i >=12 && i <= 14 ) {
-					this.servoValues[i] = parseInt((msg.message[i]/180)*this.servoRange+this.servoMin);
-				/*}else if (i >=3 && i <= 5 ) {
-					this.servoValues[i] = parseInt((msg.message[i]/180)*this.servoRange+this.servoMin);
-				} else {
-					this.servoValues[i] = 1500;
-				}*/
-			}
-			//console.log("DBG", this.servoValues);
+		if (msg.event == 'IK/State') {
+			this.servoControllerUpdate(msg.message);
+			this.servoControllerSend();
+		} else if (msg.event == 'HAL/RAWAngles') {	// input raw angles, for debug
+			this.servoControllerUpdate(msg.message);
 			this.servoControllerSend();
 		}
 	}
@@ -55,12 +47,39 @@ module.exports = function () {
 		this.servoBoard.on('data', function (data) {
 			if (data.toString() == "ready\r\n") {
 				this.isServoBoardReady = true;
-				this.msgOut({ ID: this.ID, event: "servoBoard", message: true });
+				this.msgOut({ ID: this.ID, event: this.ID+'/servoBoard', message: { success: true } });
 			}
 		}.bind(this));
 		this.servoBoard.on('error', function(err) {
-			this.msgOut({ ID: this.ID, event: "servoBoard", message: false, error: err.message });
+			this.msgOut({ ID: this.ID, event: this.ID+'/servoBoard', message: { success: false, error: err.message }});
 		}.bind(this));
+		
+		// init servo range
+		for (var servo_num = 0; servo_num < 18; servo_num++) {
+			this.servoRange[servo_num] = this.config.servoBoard.servo[servo_num].max - this.config.servoBoard.servo[servo_num].min;
+		}
+	}
+	
+	this.deg2servo = function (deg, servo_num) {
+		if (deg < 0) deg = 0;
+		if (deg > 180) deg = 180;
+		return parseInt((deg/180)*this.servoRange[servo_num]+this.config.servoBoard.servo[servo_num].min);
+	}
+	
+	this.servoControllerUpdate = function (state) {
+		var tmp = [
+			 //                                                Servo AngleCoxa                                                       Servo AngleFemur                                                       Servo AngleTibia
+			90-state.leg.LF.AngC+this.config.servoBoard.correction.leg.LF.AngC,   180-state.leg.LF.AngF+this.config.servoBoard.correction.leg.LF.AngF,   180-state.leg.LF.AngT+this.config.servoBoard.correction.leg.LF.AngT, // Left Front
+			90-state.leg.LM.AngC+this.config.servoBoard.correction.leg.LM.AngC,   180-state.leg.LM.AngF+this.config.servoBoard.correction.leg.LM.AngF,   180-state.leg.LM.AngT+this.config.servoBoard.correction.leg.LM.AngT, // Left Middle
+			90-state.leg.LB.AngC+this.config.servoBoard.correction.leg.LB.AngC,   180-state.leg.LB.AngF+this.config.servoBoard.correction.leg.LB.AngF,   180-state.leg.LB.AngT+this.config.servoBoard.correction.leg.LB.AngT, // Left Bottom
+			90-state.leg.RF.AngC+this.config.servoBoard.correction.leg.RF.AngC,       state.leg.RF.AngF+this.config.servoBoard.correction.leg.RF.AngF,       state.leg.RF.AngT+this.config.servoBoard.correction.leg.RF.AngT, // Right Front
+			90-state.leg.RM.AngC+this.config.servoBoard.correction.leg.RM.AngC,       state.leg.RM.AngF+this.config.servoBoard.correction.leg.RM.AngF,       state.leg.RM.AngT+this.config.servoBoard.correction.leg.RM.AngT, // Right Middle
+			90-state.leg.RB.AngC+this.config.servoBoard.correction.leg.RB.AngC,       state.leg.RB.AngF+this.config.servoBoard.correction.leg.RB.AngF,       state.leg.RB.AngT+this.config.servoBoard.correction.leg.RB.AngT  // Right Bottom
+		];
+		this.msgOut({ ID: this.ID, event: this.ID+'/servoAngles', message: tmp });
+		for (var servo_num = 0; servo_num < 18; servo_num++) {
+			this.servoValues[servo_num] = this.deg2servo(tmp[servo_num], servo_num);
+		}
 	}
 	
 	this.servoControllerPackage = function () {
@@ -74,14 +93,12 @@ module.exports = function () {
 	
 	this.servoControllerSend = function () {
 		var tmp = this.servoControllerPackage();
-		//console.log("Write:", tmp, this.servoValues);
-		//console.log("< ", this.servoValues.join(" "));
 		this.servoBoard.write(tmp, function(err) {
 			if (err) {
-				return console.log('Error on write: ', err.message)
+				return console.log('Error on write: ', err.message)	// TODO logger and error to event bus
 			}
-			//console.log('message written');
-		});
+			this.msgOut({ ID: this.ID, event: this.ID+'/servoValues', message: this.servoValues });
+		}.bind(this));
 
 	}
 

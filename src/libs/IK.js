@@ -1,10 +1,16 @@
 'use strict'
 
+const insidePolygon = require('point-in-polygon');
+const polygon = require('concaveman');
+
 // Inverse Kinematics
+// And a lot of other logic for movements
 module.exports = function () {
-	this.ID = "IK";
+	this.ID = "IK";	// namespace
 	this.loop = false;
 	this.hexapod = { };
+	
+	this.tmp_ground = -80;
 	
 	// some useful constants for calculations
 	this.constants = {
@@ -31,20 +37,19 @@ module.exports = function () {
 			RB: { x: false, y: false, z: false },
 		},
 		leg: {
-			LF: { AngC: false, AngF: false, AngT: false, x: false, y:false, z: false, L: false },
-			LM: { AngC: false, AngF: false, AngT: false, x: false, y:false, z: false, L: false },
-			LB: { AngC: false, AngF: false, AngT: false, x: false, y:false, z: false, L: false },
-			RF: { AngC: false, AngF: false, AngT: false, x: false, y:false, z: false, L: false },
-			RM: { AngC: false, AngF: false, AngT: false, x: false, y:false, z: false, L: false },
-			RB: { AngC: false, AngF: false, AngT: false, x: false, y:false, z: false, L: false }
+			LF: { AngC: false, AngF: false, AngT: false, x: false, y:false, z: false, L: false, on_ground: true, out_of_limit: false, restoring: false },
+			LM: { AngC: false, AngF: false, AngT: false, x: false, y:false, z: false, L: false, on_ground: true, out_of_limit: false, restoring: false },
+			LB: { AngC: false, AngF: false, AngT: false, x: false, y:false, z: false, L: false, on_ground: true, out_of_limit: false, restoring: false },
+			RF: { AngC: false, AngF: false, AngT: false, x: false, y:false, z: false, L: false, on_ground: true, out_of_limit: false, restoring: false },
+			RM: { AngC: false, AngF: false, AngT: false, x: false, y:false, z: false, L: false, on_ground: true, out_of_limit: false, restoring: false },
+			RB: { AngC: false, AngF: false, AngT: false, x: false, y:false, z: false, L: false, on_ground: true, out_of_limit: false, restoring: false }
 		}
 	};
 	
 	// move data for loop/event
-	// TODO calculate steps using servo board frequency
 	this.dmove = {
-		speed: 100,
-		angspeed: 2.5,
+		speed: 0,
+		angspeed: 0,
 		inProgress: false,
 		dx: false,	// delta of full move
 		dy: false,
@@ -55,21 +60,20 @@ module.exports = function () {
 		gaitsteps: 0,
 		current_gaitstep: 0,
 		
-		smooth: 10,	// event per gaitstep (smooth)
+		smooth: 0,	// event per gaitstep (smooth)
 		current_smooth: 0,
 		
-		step_delay: 20,	// loop delay???
-		leg: {	// TODO check if all of this in use
-			LF: { inProgress: false, gaitstep_dx: false, gaitstep_dy: false, gaitstep_dz: false, gait_z: 0, ground_z: false, current_subgaitstep: false, subgaitsteps: false },
-			LM: { inProgress: false, gaitstep_dx: false, gaitstep_dy: false, gaitstep_dz: false, gait_z: 0, ground_z: false, current_subgaitstep: false, subgaitsteps: false },
-			LB: { inProgress: false, gaitstep_dx: false, gaitstep_dy: false, gaitstep_dz: false, gait_z: 0, ground_z: false, current_subgaitstep: false, subgaitsteps: false },
-			RF: { inProgress: false, gaitstep_dx: false, gaitstep_dy: false, gaitstep_dz: false, gait_z: 0, ground_z: false, current_subgaitstep: false, subgaitsteps: false },
-			RM: { inProgress: false, gaitstep_dx: false, gaitstep_dy: false, gaitstep_dz: false, gait_z: 0, ground_z: false, current_subgaitstep: false, subgaitsteps: false },
-			RB: { inProgress: false, gaitstep_dx: false, gaitstep_dy: false, gaitstep_dz: false, gait_z: 0, ground_z: false, current_subgaitstep: false, subgaitsteps: false }
+		step_delay: 10,	// loop delay, TODO calculate steps using servo board frequency
+		leg: {
+			LF: { inProgress: false, gait_z: 0, ground_z: false, current_subgaitstep: false, subgaitsteps: false },
+			LM: { inProgress: false, gait_z: 0, ground_z: false, current_subgaitstep: false, subgaitsteps: false },
+			LB: { inProgress: false, gait_z: 0, ground_z: false, current_subgaitstep: false, subgaitsteps: false },
+			RF: { inProgress: false, gait_z: 0, ground_z: false, current_subgaitstep: false, subgaitsteps: false },
+			RM: { inProgress: false, gait_z: 0, ground_z: false, current_subgaitstep: false, subgaitsteps: false },
+			RB: { inProgress: false, gait_z: 0, ground_z: false, current_subgaitstep: false, subgaitsteps: false }
 		}
 	};
 	// moveData with vector x,y,z + AngZ (yaw)
-	// TODO get/update it from interface
 	// TODO failsafe on lost data from interface
 	this.moveData = {
 		x : 0,
@@ -78,16 +82,36 @@ module.exports = function () {
 		AngZ : 0
 	};
 
+	this.init = function (_config) {
+		console.log("[INIT]", "IK");	// TODO logger
+		this.hexapod = _config;
+	}
 
 	this.run = function () {
 		console.log("[RUN]", "IK");	// TODO logger
+		
+		this.dmove.smooth   = this.hexapod.config.gait.smooth;
+		this.dmove.speed    = this.hexapod.config.gait.speed;
+		this.dmove.angspeed = this.hexapod.config.gait.angspeed;
+		
+		this.msgOut({ ID: this.ID, event: this.ID+'/InitHexapod', message: this.hexapod});
+		
+		this.initConstants();
+		this.msgOut({ ID: this.ID, event: this.ID+'/InitConstants', message: this.constants});
+		
+		this.initBody();
+		this.update();
+		this.msgOut({ ID: this.ID, event: this.ID+'/InitState', message: this.state});
+		
+		this.initDMove();
+		this.msgOut({ ID: this.ID, event: this.ID+'/InitDMove', message: this.dmove});
+		
 		this.initLoop();
 	};
 	
 	// Communication
 	this.msgIn = function (msg) {
-		if (msg.event == 'moveData') {
-			//console.log("DBG", msg.ID, "->", this.ID, msg.message);
+		if (msg.event == 'INTERFACE.INPUT/move') {
 			this.msgIn_moveData(msg.message);
 		}
 	}
@@ -101,14 +125,6 @@ module.exports = function () {
 	
 	this.msgOut = false;
 	
-	this.init = function (_config) {
-		console.log("[INIT]", "IK");	// TODO logger
-		this.hexapod = _config;
-		this.initConstants();
-		this.initBody();
-		this.initDMove();
-	}
-
 	// IK helpers
 	this._degNorm = function (deg) {
 		while (deg > 360 || deg < 0) {
@@ -182,12 +198,41 @@ module.exports = function () {
 	
 	// IK
 	this.getGround = function (x,y) {	// TODO this will be used for 3D surface only
-		return -100;
+		return this.tmp_ground;
+	}
+	
+	this.checkLegOnTheGround = function (ID) {
+		// TODO check with sensors
+		if (this.state.leg[ID].z == this.getGround(this.state.leg[ID].x, this.state.leg[ID].y)) {
+			this.state.leg[ID].on_ground = true;
+			return true;
+		}
+		this.state.leg[ID].on_ground = false;
+		return false;
 	}
 	
 	this.isLegOnTheGround = function (ID) {
-		// TODO check with sensors
-		if (this.state.leg[ID].z == this.getGround(this.state.leg[ID].x, this.state.leg[ID].y)) {
+		return this.state.leg[ID].on_ground;
+	}
+
+	this.isAllLegsOnGround = function () {
+		for (var i = 0; i < this.hexapod.legs.length; i++) {
+			var ID = this.hexapod.legs[i];
+			if (!this.isLegOnTheGround(ID)) {
+				return false;
+			}
+		}
+		return true;
+	}
+	
+	this.isLegSamePosition = function (ID, tmp) {
+		var precision = 5;
+		// This is not too precision values, but should be fine for current solution
+		// see https://stackoverflow.com/questions/10015027/javascript-tofixed-not-rounding/32605063#32605063
+		if (tmp.x.toFixed(precision) == this.state.leg[ID].x.toFixed(precision) 
+			&& tmp.y.toFixed(precision) == this.state.leg[ID].y.toFixed(precision) 
+			&& tmp.z.toFixed(precision) == this.state.leg[ID].z.toFixed(precision)
+		) {
 			return true;
 		}
 		return false;
@@ -228,6 +273,33 @@ module.exports = function () {
 										 2 * Lt * Lf
 		*/
 		this.state.leg[ID].AngT = this._rad2deg(Math.acos((this.constants.leg[ID].Lt2 + this.constants.leg[ID].Lf2 - tmp) / (2 * this.constants.leg[ID].LtLf)));
+	}
+	
+	this.checkLegOutOfLimits = function (ID) {
+		if (   this.state.leg[ID].AngC < this.hexapod.config.leg[ID].AngC.min || this.state.leg[ID].AngC > this.hexapod.config.leg[ID].AngC.max
+			|| this.state.leg[ID].AngF < this.hexapod.config.leg[ID].AngF.min || this.state.leg[ID].AngF > this.hexapod.config.leg[ID].AngF.max
+			|| this.state.leg[ID].AngT < this.hexapod.config.leg[ID].AngT.min || this.state.leg[ID].AngT > this.hexapod.config.leg[ID].AngT.max
+			|| this.state.leg[ID].L    < this.hexapod.config.leg[ID].L.min    || this.state.leg[ID].L    > this.hexapod.config.leg[ID].L.max
+		) {
+			this.state.leg[ID].out_of_limit = true;
+			return true;
+		}
+		this.state.leg[ID].out_of_limit = false;
+		return false;
+	}
+	
+	this.isLegOutOfLimits = function (ID) {
+		return this.state.leg[ID].out_of_limit;
+	}
+	
+	this.isSomeLegsOutOfLimits = function () {
+		for (var i = 0; i < this.hexapod.legs.length; i++) {
+			var ID = this.hexapod.legs[i];
+			if (this.isLegOutOfLimits(ID)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 
@@ -290,7 +362,9 @@ module.exports = function () {
 
 	this.updateLeg = function () {
 		for (var i = 0; i < this.hexapod.legs.length; i++) {
-			this.legAng(this.hexapod.legs[i]);
+			var ID = this.hexapod.legs[i];
+			this.legAng(ID);
+			this.checkLegOutOfLimits(ID);
 		}
 	}
 	
@@ -301,31 +375,91 @@ module.exports = function () {
 	
 	// move
 	// LOOP(moveToNext) -> moveToNextGait -> movetoNextGaitUpdateLeg
+	this.isInMove = function () {
+		return this.dmove.dx !=0 || this.dmove.dy !=0 || this.dmove.dAngZ !=0
+	}
+	
+	this.isZeroState = function () {
+		// check if hexapod legs returned to zero state
+		for (var i = 0; i < this.hexapod.legs.length; i++) {
+			var ID = this.hexapod.legs[i];
+			var tmp = this.preCalculcate({
+					x: 0,
+					y: 0,
+					z: 0,
+					AngZ: 0
+				}, ID);
+			if (!this.isLegSamePosition(ID, tmp.leg[ID])) {
+				return false
+			}
+		}
+		return true;
+	}
+	
+	this.startMove = function () {
+		this.dmove.inProgress = true;
+	}
+	
+	this.stopMove = function () {
+		this.dmove.inProgress = false;
+	}
+	
 	this.move = function() {
 		this.dmove.dAngZ = this.moveData.AngZ*this.dmove.angspeed;
 
 		this.dmove.dx = this.moveData.x*this.dmove.speed;
 		this.dmove.dy = this.moveData.y*this.dmove.speed;
-		if (this.dmove.dx !=0 || this.dmove.dy !=0 || this.dmove.dAngZ !=0) {
-			this.dmove.inProgress = true;
+		if (this.isInMove() || !this.isAllLegsOnGround()) {
+			//console.log("DBGMOVE", this.moveData, this.dmove.dx, this.dmove.dy, this.dmove.dAngZ);
+			this.startMove();
 		} else {
-			this.dmove.inProgress = false;
+			this.stopMove();
 		}
 	}
+
 
 	this.movetoNextGaitUpdateLeg = function (ID) {
 		if (this.dmove.leg[ID].inProgress) {
 			var g_move_progress = this.dmove.leg[ID].current_subgaitstep / this.dmove.leg[ID].subgaitsteps;
-			this.state.leg[ID].x += this.dmove.leg[ID].dx;	// probably it is a good idea to use smooth function for all axis, not only x^4 for Z axis
-			this.state.leg[ID].y += this.dmove.leg[ID].dy;
-			// Z axis on flat surface will use y=-(2*x-1)^4+1
+			if (this.isLegOutOfLimits(ID) && !this.state.leg[ID].restoring) {
+				// don't move leg any more, just put it on the ground
+				// TODO this is a little bit useless, as Z axis still in calculate and it can cause and issue
+				// recalculate nearest (default to make it simple, later this should find available position near default) safe position on the ground and move leg to it
+				var tmp = this.preCalculcate({
+						x: 0,
+						y: 0,
+						z: 0,
+						AngZ: 0
+					}, ID);
+				// set new deltas for leg to move to the safe position ASAP
+				//if (g_move_progress > 0.7) {
+					// as most the gait finished, it is better to restart gait
+					//this.dmove.current_smooth = 0;
+					//this.dmove.leg[ID].subgaitsteps = 0;
+				//}
+				this.dmove.leg[ID].dx = (tmp.leg[ID].x - this.state.leg[ID].x) / (this.dmove.leg[ID].subgaitsteps - this.dmove.leg[ID].current_subgaitstep);
+				this.dmove.leg[ID].dy = (tmp.leg[ID].y - this.state.leg[ID].y) / (this.dmove.leg[ID].subgaitsteps - this.dmove.leg[ID].current_subgaitstep);
+				this.state.leg[ID].restoring = true;
+			} else {
+				this.state.leg[ID].x += this.dmove.leg[ID].dx;
+				this.state.leg[ID].y += this.dmove.leg[ID].dy;
+			}
+
+			// Z axis on flat surface will use y=-(2*x-1)^2+1
 			// this will get us `x` [0...1] where `y` will be `0` to `1` to `0`, looks like perfect (and simple!) for leg 
 			// as in the middle it will be max and zeros at the begin and end
-			this.state.leg[ID].z = (-Math.pow(2*g_move_progress-1,4)+1) * this.dmove.leg[ID].gait_z + this.dmove.leg[ID].ground_z;
+			this.state.leg[ID].z = (-Math.pow(2*g_move_progress-1,2)+1) * this.dmove.leg[ID].gait_z + this.dmove.leg[ID].ground_z;
+			this.checkLegOnTheGround(ID);
 		}
 	}
 	
 	this.moveToNextGait = function () {
+		
+		// TODO check center of gravity (GC) somewhere there by legs on the ground
+		// if GC is too ouside of safe boundaries, don't move leg and/or put some/all of it to the ground
+		
+		//this.checkBalance();
+
 		for (var i = 0; i < this.hexapod.legs.length; i++) {
 			var ID = this.hexapod.legs[i];
 			var leg_steps = this.hexapod.config.gait.sequence[parseInt(this.dmove.current_gaitstep)][ID];
@@ -340,26 +474,34 @@ module.exports = function () {
 					this.dmove.leg[ID].subgaitsteps = false;
 					this.dmove.leg[ID].current_subgaitstep = false;
 					this.dmove.leg[ID].inProgress = false;	// looks like the same
+					this.state.leg[ID].restoring = false;
 				}
 			}
 
 			if (leg_steps > 0) {
 				if (!this.dmove.leg[ID].inProgress) {
-					// begin gait
-					this.dmove.leg[ID].inProgress = true;
-					this.dmove.leg[ID].current_subgaitstep = 0;
-					this.dmove.leg[ID].gait_z = this.dmove.gait_z;
-					this.dmove.leg[ID].ground_z = -100; 	// TODO, not just 100, but expected ground level
-					this.dmove.leg[ID].subgaitsteps = parseInt(this.dmove.smooth)*leg_steps;
 					var tmp = this.preCalculcate({
-							x: this.dmove.dx/3,
-							y: this.dmove.dy/3,
+							x: this.dmove.dx/this.hexapod.config.gait.deltaStep,
+							y: this.dmove.dy/this.hexapod.config.gait.deltaStep,
 							z: 0,
 							AngZ: this.dmove.dAngZ
 						}, ID);
 
-					this.dmove.leg[ID].dx = (tmp.leg[ID].x - this.state.leg[ID].x) / this.dmove.leg[ID].subgaitsteps;
-					this.dmove.leg[ID].dy = (tmp.leg[ID].y - this.state.leg[ID].y) / this.dmove.leg[ID].subgaitsteps;
+					if (!this.isLegSamePosition(ID, tmp.leg[ID])
+						&& (!this.isSomeLegsOutOfLimits() || this.isLegOutOfLimits(ID) )
+					) {
+						// begin gait
+						this.dmove.leg[ID].inProgress = true;
+						this.dmove.leg[ID].current_subgaitstep = 0;
+						this.dmove.leg[ID].gait_z = this.dmove.gait_z;
+						this.dmove.leg[ID].ground_z = this.tmp_ground;
+						this.dmove.leg[ID].subgaitsteps = parseInt(this.dmove.smooth)*leg_steps;
+
+						this.dmove.leg[ID].dx = (tmp.leg[ID].x - this.state.leg[ID].x) / this.dmove.leg[ID].subgaitsteps;
+						this.dmove.leg[ID].dy = (tmp.leg[ID].y - this.state.leg[ID].y) / this.dmove.leg[ID].subgaitsteps;
+					} else {
+						this.dmove.current_smooth = this.dmove.smooth;	// this will skip this gait
+					}
 				}
 			}
 		}
@@ -369,6 +511,12 @@ module.exports = function () {
 			this.dmove.current_gaitstep++;
 			if (this.dmove.current_gaitstep >= this.dmove.gaitsteps) {
 				this.dmove.current_gaitstep = 0;
+			}
+		}
+
+		if (this.isAllLegsOnGround() && !this.isInMove()) {
+			if (this.isZeroState()) {
+				this.stopMove();
 			}
 		}
 	}
@@ -382,23 +530,72 @@ module.exports = function () {
 			// TODO check if some of this value can be precalculated before
 			var _tmp_cos = Math.cos(this._deg2rad(this.state.body.AngZ));
 			var _tmp_sin = Math.sin(this._deg2rad(this.state.body.AngZ));
-			this.state.body.x += (this.dmove.dx/this.dmove.totalsteps)*_tmp_cos - (this.dmove.dy/this.dmove.totalsteps)*_tmp_sin;
-			this.state.body.y += (this.dmove.dx/this.dmove.totalsteps)*_tmp_sin + (this.dmove.dy/this.dmove.totalsteps)*_tmp_cos;
+			if (!this.isSomeLegsOutOfLimits()) {
+				// don't move body if some legs out of limit
+				this.state.body.x += (this.dmove.dx/this.dmove.totalsteps)*_tmp_cos - (this.dmove.dy/this.dmove.totalsteps)*_tmp_sin;
+				this.state.body.y += (this.dmove.dx/this.dmove.totalsteps)*_tmp_sin + (this.dmove.dy/this.dmove.totalsteps)*_tmp_cos;
+			}
 			
 			this.moveToNextGait();
 			this.update();
 			
-			this.msgOut({ ID: this.ID, event: "legsAngles", 
-				message: [
-					-this.state.leg.LF.AngC+90, 180-this.state.leg.LF.AngF, this.state.leg.LF.AngT, 
-					-this.state.leg.LM.AngC+90, 180-this.state.leg.LM.AngF, this.state.leg.LM.AngT, 
-					-this.state.leg.LB.AngC+90, 180-this.state.leg.LB.AngF, this.state.leg.LB.AngT, 
-					 this.state.leg.RF.AngC+90, this.state.leg.RF.AngF, 180-this.state.leg.RF.AngT, 
-					 this.state.leg.RM.AngC+90, this.state.leg.RM.AngF, 180-this.state.leg.RM.AngT, 
-					 this.state.leg.RB.AngC+90, this.state.leg.RB.AngF, 180-this.state.leg.RB.AngT
-				]});
+			this.msgOut({ ID: this.ID, event: this.ID+'/State', message: this.state});
 		} else {
 			// ping
 		}
+	}
+	
+	// https://hackaday.io/project/21904-hexapod-modelling-path-planning-and-control
+	// https://hackaday.io/project/21904-hexapod-modelling-path-planning-and-control/log/62326-3-fundamentals-of-hexapod-robot
+	this.checkBalance = function () {
+		// body should be inside of leg_on_the_ground polygon
+		// TODO optimize
+		var supportedPolygon = [];
+		var supportedPolygonFlat = [];
+		for (var i = 0; i < this.hexapod.legs.length; i++) {
+			var ID = this.hexapod.legs[i];
+			if (this.state.leg[ID].on_ground) {
+				supportedPolygon.push({
+					ID: ID, 
+					x: parseFloat(this.state.leg[ID].x), 
+					y: parseFloat(this.state.leg[ID].y), 
+				});
+				supportedPolygonFlat.push([parseFloat(this.state.leg[ID].x), parseFloat(this.state.leg[ID].y)]);
+			}
+		}
+		supportedPolygonFlat = polygon(supportedPolygonFlat);
+		var legsOnTheGround = supportedPolygon.length;
+		if (legsOnTheGround => 3) {
+			// al least 3 legs on the ground!
+			var supportedPolygonCenter = {
+				x: 0,
+				y: 0,
+			};
+			
+			for (var i = 0; i < legsOnTheGround; i++) {
+				supportedPolygonCenter.x += supportedPolygon[i].x;
+				supportedPolygonCenter.y += supportedPolygon[i].y;
+			}
+			supportedPolygonCenter.x = supportedPolygonCenter.x/legsOnTheGround;
+			supportedPolygonCenter.y = supportedPolygonCenter.y/legsOnTheGround;
+			
+			var stableDistance = Math.sqrt( Math.pow(this.state.body.x - supportedPolygonCenter.x, 2) + Math.pow(this.state.body.y - supportedPolygonCenter.y, 2));
+			/*console.log("DBG stable distance", 
+				stableDistance, 
+				{ 
+					x: this.state.body.x, 
+					y: this.state.body.y, 
+				}, 
+				supportedPolygonFlat,
+				supportedPolygonCenter, 
+				legsOnTheGround, 
+				{ 
+					x: this.state.body.x - supportedPolygonCenter.x,  
+					y: this.state.body.y - supportedPolygonCenter.y,  
+				},
+				insidePolygon([this.state.body.x, this.state.body.y], supportedPolygonFlat)	// does not looks like correct, probably something wrong with polygon points
+			);*/
+		}
+		return false;
 	}
 }

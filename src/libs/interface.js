@@ -1,46 +1,19 @@
 'use strict'
 // Interface
+// - gamepad
 // - websocket API
 // - basic web GUI
 
-const gamepad = require("gamepad");
+const eventbus = require("./eventbus.js");
 
+const gamepad = require("./interface.gamepad.js");
+const http = require("./interface.http.js");
+const ws = require("./interface.ws.js");
 
 module.exports = function () {
-	this.ID = "INTERFACE";
+	this.ID = "INTERFACE";	// namespace
 	this.config = {};
-	
-	/*
-	Gamepad
-	       Left Stick           Right Stick
-	    -1 ^ Axis1           -1 ^ Axis3
-	       |                    |
-	-1 <---*---> Axis0   -1 <---*---> Axis2
-	       |                    |
-	       v                    v
-	Dpad
-	     Axis7
-	     +--+
-	     |-1|
-	  +--+  +--+
-	  |-1    +1|  Axis6
-	  +--+  +--+
-	     |+1|
-	     +--+
-	
-	X: Button3
-	Y: Button4
-	A: Button0
-	B: Button1
-	
-	Select: Button10
-	Start: Button11
-	
-	L1: Button6
-	L2: Button2 and Axis5 with value -1 (??)
-	R1: Button7
-	R2: Button9 and Axis4 with value -1 (??)
-	*/
+	this.gamepad = {};
 	
 	this.moveData = {
 		x : 0,
@@ -51,84 +24,66 @@ module.exports = function () {
 
 	
 	this.init = function (_config) {
+		console.log("[INIT]", "interface");
 		this.config = _config;
+
+		this.initEvents();
+
 		if (this.config.gamepad.enabled) {
-			this.gamepadInit();
+			this.gamepad = new gamepad();
+			this.gamepad.init(this.config.gamepad);
+		}
+		if (this.config.control_http.enabled) {
+			this.http = new http();
+			this.http.init(this.config.control_http);
+		}
+		if (this.config.control_ws.enabled) {
+			this.ws = new ws();
+			this.ws.init(this.config.control_ws);
 		}
 	}
 
 	this.run = function () {
 		console.log("[RUN]", "interface");
+		if (this.config.gamepad.enabled) {
+			this.gamepad.run();
+		}
+		if (this.config.control_http.enabled) {
+			this.http.run();
+		}
+		if (this.config.control_ws.enabled) {
+			this.ws.run();
+		}
 	};
 	
 	// Communication
+	this.initEvents = function () {
+		// Gamepad input
+		eventbus.eventBus.on(this.ID+'.GAMEPAD/interfaceConnected', message => {
+			this.msgOut({ ID: this.ID, event: this.ID+'.INPUT/interfaceConnected', message: message.message});
+		});
+		eventbus.eventBus.on(this.ID+'.GAMEPAD/interfaceDisconnected', message => {
+			this.msgOut({ ID: this.ID, event: this.ID+'.INPUT/interfaceDisconnected', message: message.message});
+		});
+		eventbus.eventBus.on(this.ID+'.GAMEPAD/move', message => {
+			this.msgOut({ ID: this.ID, event: this.ID+'.INPUT/move', message: message.message});
+		});
+
+		// WS input
+		eventbus.eventBus.on('HAL/RAWAngles', message => {
+			this.msgOut({ ID: this.ID, event: 'HAL/RAWAngles', message: message.message});
+		});
+		eventbus.eventBus.on(this.ID+'.WS/move', message => {
+			this.msgOut({ ID: this.ID, event: this.ID+'.INPUT/move', message: message.message});
+		});
+	}
+	
 	this.msgIn = function (msg) {
+		// all extra messages should emit event
+		if (msg && msg.event) {
+			eventbus.eventBus.sendEvent('_'+msg.event, { ID: msg.ID, message: msg.message });
+		}
 	}
 	this.msgOut = false;
 
-
-	// Gamepad controller
-	this.gamepads = { };
-	this.gamepadInit = function() {
-		// NOT TESTED
-		gamepad.init();
-		// Create a game loop and poll for events
-		setInterval(gamepad.processEvents, 16);
-		// Scan for new gamepads as a slower rate
-		setInterval(gamepad.detectDevices, 500);
-		// Check available gamepads
-		setInterval(function () { this.gamepadReinit();}.bind(this), 1000);
-		
-		// TODO check connect/disconnect!!!
-
-		// Listen for move events on all gamepads
-		gamepad.on("move", function (id, axis, value) {
-			if (typeof this.config.gamepad.axis[axis] != 'undefined') {
-				if (Math.abs(value) < this.config.gamepad.axis_deadband[axis]) value = 0;	// not all gamepads perfect, set value to zero (middle)
-				this.moveData[this.config.gamepad.axis[axis]] = value*this.config.gamepad.axis_coefficient[axis];
-				this.update();
-			}
-		}.bind(this));
-
-		// Listen for button up events on all gamepads
-		gamepad.on("up", function (id, num) {
-		}.bind(this));
-
-		// Listen for button down events on all gamepads
-		gamepad.on("down", function (id, num) {
-		}.bind(this));
-	}
-	this.gamepadReinit = function () {
-		for (var i = 0, l = gamepad.numDevices(); i < l; i++) {
-			var device = gamepad.deviceAtIndex(i);
-			var device_id = device.vendorID+":"+device.productID;
-			if (!this.gamepads[device_id]) {
-				this.gamepads[device_id] = { num: parseInt(i), ID: device.deviceID };
-				this.msgOut({ ID: this.ID, event: "interfaceConnected", message: { interface: "gamepad", status: true }});
-			}
-		}
-		
-		for (var device_id in this.gamepads) {
-			if (this.gamepads[device_id] !==false && !gamepad.deviceAtIndex(this.gamepads[device_id].num)) {
-				this.gamepads[device_id] = false;
-				this.msgOut({ ID: this.ID, event: "interfaceDisconnected", message: { interface: "gamepad", status: false }});
-				this.gamepadDisconnected();
-			}
-		}
-	}
-	this.gamepadDisconnected = function () {
-		// stop
-		this.moveData = {
-			x : 0,
-			y : 0,
-			z : 0,
-			AngZ : 0
-		};
-		this.update();
-	}
-	
-	
-	this.update = function () {
-		this.msgOut({ ID: this.ID, event: "moveData", message: this.moveData});
-	}
 }
