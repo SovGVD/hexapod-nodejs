@@ -314,10 +314,10 @@
 	var ws_interface = false;
 	var host=location.hostname;
 	function initFeedReceive() {
-		sendCmd('get', { eventName: 'IK/InitHexapod' });
-		sendCmd('get', { eventName: 'IK/InitConstants' });
-		sendCmd('get', { eventName: 'IK/InitState' });
-		sendCmd('get', { eventName: 'IK/State' });
+		sendCmd('get',       { eventName: 'IK/InitHexapod' });
+		sendCmd('get',       { eventName: 'IK/InitConstants' });
+		sendCmd('get',       { eventName: 'IK/InitState' });
+		sendCmd('get',       { eventName: 'IK/State' });
 		sendCmd('subscribe', { eventName: 'HAL/servoAngles' });
 		sendCmd('subscribe', { eventName: 'IK/State' });
 	}
@@ -390,11 +390,57 @@
 				AngZ : 0
 			};
 		}
-		sendCmd('set', { eventName: 'INTERFACE.WS/move', message: moveData })
+		sendCmd('set', { eventName: 'INTERFACE.WS/move', message: moveData });
 		return false;
 	}
 
-	
+	// Gamepad
+	var gp = false;	// GamePad object
+	var gpInterval = false;
+	function initGamepad() {
+		window.addEventListener("gamepadconnected", gamepadConnectHandler);
+		window.addEventListener("gamepaddisconnected", gamepadDisconnectHandler);
+	}
+	function gamepadConnectHandler (e) {
+		gamepadAdd(e.gamepad);
+	}
+	function gamepadDisconnectHandler (e) {
+		gamepadRemove(e.gamepad);
+		moveData = {
+			x : 0,
+			y : 0,
+			z : 0,
+			AngZ : 0
+		};
+	}
+	function gamepadRemove(g) {
+		gp = false;
+	}
+	function gamepadAdd(g) {
+		initGamePadEvents();
+		gp = g;
+	}
+	function initGamePadEvents() {
+		if (gpInterval) {
+			clearInterval(gpInterval);
+			initGamePadEvents();
+		} else {
+			// And how to drop it?
+			setInterval(function () { gamepadData() }.bind(this), 100);
+		}
+	}
+	function gamepadData() {
+		gp = navigator.getGamepads()[0];
+		moveData.AngZ = -gp.axes[0]*0.5;	// less speed of rotation TODO
+		moveData.z = -gp.axes[1];
+		moveData.y = -gp.axes[2];
+		moveData.x = -gp.axes[3];
+		sendCmd('set', { eventName: 'INTERFACE.WS/move', message: moveData });
+		return true;
+	}
+
+
+	initGamepad();
 	initKeyboard();
 	initFeed();
 	
