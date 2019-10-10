@@ -68,9 +68,14 @@
 				stroke: rgba(0,0,0,0.5);
 				stroke-dasharray: 20;
 			}
+			
+			#DBG_txt {
+				border: 1px solid red;
+			}
 	</style>
 </head>
 <body>
+<div id="DBG_txt"></div>
 <svg width="600" height="600" id="svgimg">
 	<g id="hexapod" transform="translate(300,300) scale(0.5)">
 		<polygon points="0,0 1,1 2,2 3,3 4,4 5,5" id="hexapod_body" />
@@ -160,6 +165,7 @@
 			},
 		},
 		dbg: {
+			txt: G('DBG_txt'),
 			leg: {
 				LF: {
 					C: G('hexapod_leg_LF_C_DBG'),
@@ -336,9 +342,15 @@
 		}
 	}
 	function sendCmd(_event, _message) {
+		if (_event == 'set' && _message && _message.eventName == 'INTERFACE.WS/move') {
+			displayMove();
+		}
 		if (ws_interface) {
 			ws_interface.send(JSON.stringify({ event: _event, message: _message}));
 		}
+	}
+	function displayMove() {
+		hexapod_image_objects.dbg.txt.innerHTML = (new Date()).getTime()+" x:" + moveData.x + ", y:" + moveData.y + ", z:" + moveData.z + ", AngZ:"+ moveData.AngZ;
 	}
 	function initFeed() {
 		try {
@@ -397,6 +409,7 @@
 	// Gamepad
 	var gp = false;	// GamePad object
 	var gpInterval = false;
+	var gpDead = 0.005;
 	function initGamepad() {
 		window.addEventListener("gamepadconnected", gamepadConnectHandler);
 		window.addEventListener("gamepaddisconnected", gamepadDisconnectHandler);
@@ -426,15 +439,20 @@
 			initGamePadEvents();
 		} else {
 			// And how to drop it?
-			setInterval(function () { gamepadData() }.bind(this), 100);
+			setInterval(function () { gamepadData() }.bind(this), 50);
 		}
 	}
 	function gamepadData() {
 		gp = navigator.getGamepads()[0];
-		moveData.AngZ = -gp.axes[0]*0.5;	// less speed of rotation TODO
-		moveData.z = -gp.axes[1];
-		moveData.y = -gp.axes[2];
-		moveData.x = -gp.axes[3];
+		var tmpa = [];
+		for(var i = 0; i<4; i++) {
+			tmpa[i] = parseInt(gp.axes[i]*1000)/1000;
+			if (tmpa[i] >= - gpDead && tmpa[i] <= gpDead) tmpa[i] = 0;
+		}
+		moveData.AngZ = -tmpa[0]*0.5;	// less speed of rotation TODO
+		moveData.z = -tmpa[1];
+		moveData.y = -tmpa[2];
+		moveData.x = -tmpa[3];
 		sendCmd('set', { eventName: 'INTERFACE.WS/move', message: moveData });
 		return true;
 	}
