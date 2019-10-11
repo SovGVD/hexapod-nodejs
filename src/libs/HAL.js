@@ -15,12 +15,9 @@ module.exports = function () {
 		1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500
     ];
     
-    this.groundThreshold = 300;
-    
     this.sensorsValues = {
 		leg: {
 			ground    : [0, 0, 0, 0, 0, 0],
-			on_ground : [false, false, false, false, false, false],
 		}
 	};
 	this.serialPackageBuffer     = Buffer.alloc(14);
