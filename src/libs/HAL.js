@@ -90,7 +90,6 @@ module.exports = function () {
 							sendEvent = true;
 						}
 						this.sensorsValues.leg.ground[this.serialPackageValueIndex] = value;
-						this.sensorsValues.leg.on_ground[this.serialPackageValueIndex] = value >= this.groundThreshold;
 						this.serialPackageValueIndex++;
 						offset = offset + 2;
 					}
