@@ -12,6 +12,31 @@ module.exports = function () {
 	this.currentData = {
 	};
 	
+	this.hideEventFromLog = {
+		// Interface websocket events
+		'INTERFACE.WS/subscribed': false,
+		'INTERFACE.WS/unsubscribed': false,
+		
+		// INTERFACE events
+		// INTERFACE.INOUT events
+		'INTERFACE.INPUT/interfaceConnected': false,
+		'INTERFACE.INPUT/interfaceDisconnected': false,
+		'INTERFACE.INPUT/move': false,
+		
+		// HAL events
+		'HAL/servoAngles': false,
+		'HAL/servoValues': false,
+		'HAL/sensorBoard': false,
+		'HAL/servoBoard': false,
+		
+		// IK events
+		'IK/InitHexapod': false,
+		'IK/InitConstants': false,
+		'IK/InitDMove': false,
+		'IK/InitState': false,
+		'IK/State': false,
+	};
+	
 	this.subscriptions = {
 		// Interface websocket events
 		'INTERFACE.WS/subscribed': true,
@@ -26,6 +51,7 @@ module.exports = function () {
 		// HAL events
 		'HAL/servoAngles': false,
 		'HAL/servoValues': false,
+		'HAL/sensorBoard': false,
 		'HAL/servoBoard': false,
 		
 		// IK events
@@ -50,7 +76,9 @@ module.exports = function () {
 	this.initEvents = function () {
 		for (var event in this.subscriptions) {
 			eventbus.eventBus.on('_'+event, function (event, message) {
-				console.log("[event]", "\x1b[32m", this.ID, "\x1b[33m", event, "\x1b[0m" , JSON.stringify(message));
+				if (!this.hideEventFromLog[event]) {
+					console.log("[event]", "\x1b[32m", this.ID, "\x1b[33m", event, "\x1b[0m" , JSON.stringify(message));
+				}
 				if (typeof this.subscriptions[event] !== undefined) {
 					this.currentData[event] = message;	// save latest details
 				}

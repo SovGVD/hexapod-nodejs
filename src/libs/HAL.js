@@ -14,6 +14,17 @@ module.exports = function () {
 		1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500,
 		1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500
     ];
+    
+    this.groundThreshold = 300;
+    
+    this.sensorsValues = {
+		leg: {
+			ground    : [0, 0, 0, 0, 0, 0],
+			on_ground : [false, false, false, false, false, false],
+		}
+	};
+	this.serialPackageBuffer     = Buffer.alloc(14);
+	this.serialPackageValueIndex = 0;
 
 
 	this.init = function (_config) {
@@ -45,7 +56,8 @@ module.exports = function () {
 		// TODO timeout and error message if unvailable
 		this.servoBoard = new SerialPort(this.config.servoBoard.port, { baudRate: this.config.servoBoard.baudRate });
 		this.servoBoard.on('data', function (data) {
-			if (data.toString() == "ready\r\n") {
+			this.processData(data);
+			if (!this.isServoBoardReady) {
 				this.isServoBoardReady = true;
 				this.msgOut({ ID: this.ID, event: this.ID+'/servoBoard', message: { success: true } });
 			}
@@ -57,6 +69,38 @@ module.exports = function () {
 		// init servo range
 		for (var servo_num = 0; servo_num < 18; servo_num++) {
 			this.servoRange[servo_num] = this.config.servoBoard.servo[servo_num].max - this.config.servoBoard.servo[servo_num].min;
+		}
+	}
+	
+	this.processData = function (data) {
+		// TODO optimize
+		var dataLength = data.length-1;	// there are 2bytes values
+		if (dataLength > 0) {
+			var offset = 0;
+			var sendEvent = false;
+			var readPackage = false;
+			var value = 0;
+			for (offset = 0; offset < dataLength; offset++) {
+				if (data.readUInt16BE(offset) == 65535) {
+					readPackage = true;
+					this.serialPackageValueIndex = 0;
+					offset = offset + 2;
+				}
+				if (readPackage) {
+					while (this.serialPackageValueIndex < 6 && offset < dataLength) {
+						value = data.readUInt16BE(offset);
+						if (value != this.sensorsValues.leg.ground[this.serialPackageValueIndex]) {
+							sendEvent = true;
+						}
+						this.sensorsValues.leg.ground[this.serialPackageValueIndex] = value;
+						this.sensorsValues.leg.on_ground[this.serialPackageValueIndex] = value >= this.groundThreshold;
+						this.serialPackageValueIndex++;
+						offset = offset + 2;
+					}
+					readPackage = false;
+				}
+			}
+			if (sendEvent) this.msgOut({ ID: this.ID, event: this.ID+'/sensorBoard', message: this.sensorsValues });
 		}
 	}
 	

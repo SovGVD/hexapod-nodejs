@@ -23,6 +23,18 @@
  * TODO: CRC?
  */
 
+/**
+ * Analog read
+ * 
+ * For Arduino Mega 2560 we can have 10-bit data, from 0 [0x00 0x00] to 1023 [0x03 0xFF]
+ * so the same Serial protocol can be used to send data back to "Brain"
+ * [0xFF 0xFF] - begin of package
+ * [0xXX 0xXX] - first leg
+ * ...
+ * [0xXX 0xXX] - 6th leg
+ * total package length is 14 bytes (2 + 2*6)
+ */
+
 
 //#define DEBUG // comment to disable debug
 
@@ -31,13 +43,13 @@ Servo servoController[18];
 int s = 0;
 
 // Servo pins
-unsigned int servoPins[18]={
+unsigned int servoPins[18] = {
   // 1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16  17  18 - servo number
     15, 17, 19, 21, 23, 25, 27, 29, 31, 14, 16, 18, 20, 22, 24, 26, 28, 30
 };
 
 // Servo defaults (min, mid(default), max)
-unsigned int servoDefault[3]={
+unsigned int servoDefault[3] = {
     500, 1500, 2500 // TODO, check with real servos
   };
 
@@ -46,19 +58,38 @@ unsigned int servoValues[18];
 
 
 // Servo status (`true` if it should be updated, `false` by default to not do anything on boot)
-bool servoUpdate[18]={
+bool servoUpdate[18] = {
     false, false, false, false, false, false, false, false, false,
     false, false, false, false, false, false, false, false, false
   };
 
+
+// Leg status read
+unsigned int analogPins[6] = {
+  A1, A3, A5, A7, A9, A11
+};
+
+unsigned int currentAnalogPin = 0;  // index of pin we will read on every step
+unsigned int currentAnalogPinValue = 0;
+unsigned int currentAnalogPinValueThreshold = 10; // value threshold that has meaning
+byte analogData[14] = {
+  0xFF, 0xFF, 
+  0x00, 0x00, 
+  0x00, 0x00, 
+  0x00, 0x00, 
+  0x00, 0x00, 
+  0x00, 0x00, 
+  0x00, 0x00
+};
+
+
 // Serial communication
 int preByte;
 int curByte;
-bool serialPackageProgress = false;
 int serialPackageServo = 0;
 int serialTmpValue = 0;
 int serialServo = 0;
-
+bool serialPackageProgress = false;
 
 void setup() {
   Serial.begin(115200);
@@ -125,5 +156,25 @@ void loop() {
       servoController[s].writeMicroseconds(servoValues[s]);
       servoUpdate[s] = false;
     }
+  }
+
+  readLegValues();
+  sendLegValues();
+}
+
+void readLegValues() {
+  // Read one leg per interation
+  // This should prevent main loop slow down (probably overkill for that project)
+  currentAnalogPinValue = analogRead(analogPins[currentAnalogPin]);
+  if (currentAnalogPinValue < currentAnalogPinValueThreshold) currentAnalogPinValue = 0;
+  analogData[currentAnalogPin*2+2] = (byte) (currentAnalogPinValue >> 0x08);
+  analogData[currentAnalogPin*2+3] = (byte) (currentAnalogPinValue);
+  currentAnalogPin++;
+  if (currentAnalogPin > 5) currentAnalogPin = 0;
+}
+
+void sendLegValues() {
+  for (s = 0; s < 14; s++) {
+    Serial.print((char)analogData[s]);
   }
 }
