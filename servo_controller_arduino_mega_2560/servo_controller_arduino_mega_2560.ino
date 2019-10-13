@@ -68,10 +68,12 @@ bool servoUpdate[18] = {
 unsigned int analogPins[6] = {
   A1, A3, A5, A7, A9, A11
 };
-
+bool anyAnalogUpdates = false;
 unsigned int currentAnalogPin = 0;  // index of pin we will read on every step
 unsigned int currentAnalogPinValue = 0;
 unsigned int currentAnalogPinValueThreshold = 10; // value threshold that has meaning
+byte analogToByteHigh = 0x00;
+byte analogToByteLow = 0x00;
 byte analogData[14] = {
   0xFF, 0xFF, 
   0x00, 0x00, 
@@ -127,12 +129,12 @@ void loop() {
         #ifdef DEBUG
           Serial.print("Servo ");
           Serial.print(serialServo, DEC);
-          //Serial.print(" [");
-          //Serial.print(preByte, HEX);
+          Serial.print(" [");
+          Serial.print(preByte, HEX);
           Serial.print(" ");
-          //Serial.print(curByte, HEX);
-          //Serial.print(" ");
-          //Serial.print("] = "),
+          Serial.print(curByte, HEX);
+          Serial.print(" ");
+          Serial.print("] = "),
           Serial.print(serialTmpValue, DEC);
           Serial.print(" ");
         #endif
@@ -159,18 +161,27 @@ void loop() {
   }
 
   readLegValues();
-  sendLegValues();
 }
 
 void readLegValues() {
   // Read one leg per interation
   // This should prevent main loop slow down (probably overkill for that project)
-  currentAnalogPinValue = analogRead(analogPins[currentAnalogPin]);
+  currentAnalogPinValue = (analogRead(analogPins[currentAnalogPin]) / 10) * 10;
   if (currentAnalogPinValue < currentAnalogPinValueThreshold) currentAnalogPinValue = 0;
-  analogData[currentAnalogPin*2+2] = (byte) (currentAnalogPinValue >> 0x08);
-  analogData[currentAnalogPin*2+3] = (byte) (currentAnalogPinValue);
+  analogToByteHigh = (byte) (currentAnalogPinValue >> 0x08);
+  analogToByteLow  = (byte) (currentAnalogPinValue);
+  if (analogToByteHigh != analogData[currentAnalogPin*2+2] || analogToByteLow != analogData[currentAnalogPin*2+3]) anyAnalogUpdates = true;
+  analogData[currentAnalogPin*2+2] = analogToByteHigh;
+  analogData[currentAnalogPin*2+3] = analogToByteLow;
   currentAnalogPin++;
-  if (currentAnalogPin > 5) currentAnalogPin = 0;
+  
+  if (currentAnalogPin > 5) {
+    if (anyAnalogUpdates) {
+      sendLegValues();
+    }
+    anyAnalogUpdates = false;
+    currentAnalogPin = 0;
+  }
 }
 
 void sendLegValues() {

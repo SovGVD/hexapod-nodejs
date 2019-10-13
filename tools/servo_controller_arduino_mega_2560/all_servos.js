@@ -26,7 +26,7 @@ function servoControllerPackage() {
 }
 
 parser.on('data', line => console.log(`> ${line}`))
-
+isControllerReady = true;
 port.on('data', function (data) {
   console.log(data.toString());
     if (data.toString() == "ready\r\n") {
