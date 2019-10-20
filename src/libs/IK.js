@@ -11,7 +11,7 @@ module.exports = function () {
 	this.loop = false;
 	this.hexapod = { };
 	
-	this.tmp_ground = -80;
+	this.tmp_ground = -100;
 	
 	// some useful constants for calculations
 	this.constants = {
