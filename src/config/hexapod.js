@@ -56,7 +56,7 @@ module.exports = {
 			gait: {
 				0: {
 					type: "RIPPLE",	// balance between stable (4 legs on the ground) and speed (not so slow as wave 1 by 1, bu not so fast as with tripod)
-					gaitZ: 20,	// This is only for 2D model, in real life Z should be calculate by creating 3D surface around robot (sounds cool).
+					gaitZ: 40,	// This is only for 2D model, in real life Z should be calculate by creating 3D surface around robot (sounds cool).
 					deltaStep: 3,
 					speed: 200,
 					smooth: 10,
@@ -79,7 +79,7 @@ module.exports = {
 				
 				1: {
 					type: "TRIPOD",	// speed
-					gaitZ: 20,	// This is only for 2D model, in real life Z should be calculate by creating 3D surface around robot (sounds cool).
+					gaitZ: 40,	// This is only for 2D model, in real life Z should be calculate by creating 3D surface around robot (sounds cool).
 					deltaStep: 1.5,
 					speed: 100,
 					smooth: 15,
