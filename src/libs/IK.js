@@ -5,6 +5,7 @@ const polygon = require('concaveman');
 
 // Inverse Kinematics
 // And a lot of other logic for movements
+// TODO this is already not only IK, and it is become a mess, this needs to be separated
 module.exports = function () {
 	this.ID = "IK";	// namespace
 	this.loop = false;
@@ -60,6 +61,8 @@ module.exports = function () {
 		gaitsteps: 0,
 		current_gaitstep: 0,
 		
+		gaitTypeID: 0,
+		
 		smooth: 0,	// event per gaitstep (smooth)
 		current_smooth: 0,
 		
@@ -89,10 +92,6 @@ module.exports = function () {
 
 	this.run = function () {
 		console.log("[RUN]", "IK");	// TODO logger
-		
-		this.dmove.smooth   = this.hexapod.config.gait.smooth;
-		this.dmove.speed    = this.hexapod.config.gait.speed;
-		this.dmove.angspeed = this.hexapod.config.gait.angspeed;
 		
 		this.msgOut({ ID: this.ID, event: this.ID+'/InitHexapod', message: this.hexapod});
 		
@@ -150,9 +149,14 @@ module.exports = function () {
 		this.dmove.step_delay);
 	}
 	this.initDMove = function () {
-		this.dmove.gaitsteps = parseInt(this.hexapod.config.gait.sequence.length);
+		this.dmove.gaitTypeID = this.hexapod.config.defaultGait;	// this should be in the beggining
+		
+		this.dmove.smooth     = this.hexapod.config.gait[this.dmove.gaitTypeID].smooth;
+		this.dmove.speed      = this.hexapod.config.gait[this.dmove.gaitTypeID].speed;
+		this.dmove.angspeed   = this.hexapod.config.gait[this.dmove.gaitTypeID].angspeed;
+		this.dmove.gaitsteps  = parseInt(this.hexapod.config.gait[this.dmove.gaitTypeID].sequence.length);
 		this.dmove.totalsteps = this.dmove.gaitsteps*this.dmove.smooth;
-		this.dmove.gait_z = this.hexapod.config.gait.gaitZ;
+		this.dmove.gait_z     = this.hexapod.config.gait[this.dmove.gaitTypeID].gaitZ;
 	}
 	
 	this.initConstants = function () {
@@ -239,6 +243,7 @@ module.exports = function () {
 	}
 	
 	this.legAng = function (ID) {
+		// TODO this is useless for position prediction
 		// TODO, precheck leg limits:
 		// 1. create 3D polygon of max/min available positions, including angles limits
 		// 2. check if x1,y1,z1 in that polygon
@@ -462,7 +467,7 @@ module.exports = function () {
 
 		for (var i = 0; i < this.hexapod.legs.length; i++) {
 			var ID = this.hexapod.legs[i];
-			var leg_steps = this.hexapod.config.gait.sequence[parseInt(this.dmove.current_gaitstep)][ID];
+			var leg_steps = this.hexapod.config.gait[this.dmove.gaitTypeID].sequence[parseInt(this.dmove.current_gaitstep)][ID];
 			
 			if (this.dmove.leg[ID].inProgress) {
 				if (this.dmove.leg[ID].current_subgaitstep < this.dmove.leg[ID].subgaitsteps) {
@@ -481,8 +486,8 @@ module.exports = function () {
 			if (leg_steps > 0) {
 				if (!this.dmove.leg[ID].inProgress) {
 					var tmp = this.preCalculcate({
-							x: this.dmove.dx/this.hexapod.config.gait.deltaStep,
-							y: this.dmove.dy/this.hexapod.config.gait.deltaStep,
+							x: this.dmove.dx/this.hexapod.config.gait[this.dmove.gaitTypeID].deltaStep,
+							y: this.dmove.dy/this.hexapod.config.gait[this.dmove.gaitTypeID].deltaStep,
 							z: 0,
 							AngZ: this.dmove.dAngZ
 						}, ID);

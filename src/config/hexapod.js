@@ -19,74 +19,76 @@ module.exports = {
 					AngC: { min: -25, max:  75, default:  25 }, Lc: 28, 
 					AngF: { min:  10, max: 170, default:  90 }, Lf: 86, 
 					AngT: { min:  20, max: 160, default:  90 }, Lt: 125, 
-					L: { min: 40, max: 200, default: 130 } 
+					L:    { min:  40, max: 200, default: 130 } 
 				},
 				LM: { 
 					AngC: { min: -50, max:  50, default:   0 }, Lc: 28, 
 					AngF: { min:  10, max: 170, default:  90 }, Lf: 86, 
 					AngT: { min:  20, max: 160, default:  90 }, Lt: 125, 
-					L: { min: 40, max: 200, default: 130 } 
+					L:    { min:  40, max: 200, default: 130 } 
 				},
 				LB: { 
 					AngC: { min: -75, max:  25, default: -25 }, Lc: 28, 
 					AngF: { min:  10, max: 170, default:  90 }, Lf: 86, 
 					AngT: { min:  20, max: 160, default:  90 }, Lt: 125, 
-					L: { min: 40, max: 200, default: 130 } 
+					L:    { min:  40, max: 200, default: 130 } 
 				},
 				RF: { 
 					AngC: { min: -75, max:  25, default: -25 }, Lc: 28, 
 					AngF: { min:  10, max: 170, default:  90 }, Lf: 86, 
 					AngT: { min:  20, max: 160, default:  90 }, Lt: 125, 
-					L: { min: 40, max: 200, default: 130 } 
+					L:    { min:  40, max: 200, default: 130 } 
 				},
 				RM: { 
 					AngC: { min: -50, max:  50, default:   0 }, Lc: 28, 
 					AngF: { min:  10, max: 170, default:  90 }, Lf: 86, 
 					AngT: { min:  20, max: 160, default:  90 }, Lt: 125, 
-					L: { min: 40, max: 200, default: 130 } 
+					L:    { min:  40, max: 200, default: 130 } 
 				},
 				RB: { 
 					AngC: { min: -25, max:  75, default:  25 }, Lc: 28, 
 					AngF: { min:  10, max: 170, default:  90 }, Lf: 86, 
 					AngT: { min:  20, max: 160, default:  90 }, Lt: 125, 
-					L: { min: 40, max: 200, default: 130 } 
+					L:    { min:  40, max: 200, default: 130 } 
 				}
 			},
+			defaultGait: 1,
 			gait: {
+				0: {
+					type: "RIPPLE",	// balance between stable (4 legs on the ground) and speed (not so slow as wave 1 by 1, bu not so fast as with tripod)
+					gaitZ: 20,	// This is only for 2D model, in real life Z should be calculate by creating 3D surface around robot (sounds cool).
+					deltaStep: 3,
+					speed: 200,
+					smooth: 10,
+					angspeed: 10,
+					sequence: [
+						{ "LF":  0, "LM":  0, "LB":  2, "RF":  0, "RM": -1, "RB":  0 },	// 0  - on the ground (stance), 
+						{ "LF":  0, "LM":  0, "LB": -1, "RF":  2, "RM":  0, "RB":  0 }, // >0 - in the air (swing) number of steps before ground,
+						{ "LF":  0, "LM":  2, "LB":  0, "RF": -1, "RM":  0, "RB":  0 }, // -1 - on the way to the ground (any step after), probably just ignore
+						{ "LF":  0, "LM": -1, "LB":  0, "RF":  0, "RM":  0, "RB":  2 },
+						{ "LF":  2, "LM":  0, "LB":  0, "RF":  0, "RM":  0, "RB": -1 },
+						{ "LF": -1, "LM":  0, "LB":  0, "RF":  0, "RM":  2, "RB":  0 },
+						{ "LF":  0, "LM":  0, "LB":  2, "RF":  0, "RM": -1, "RB":  0 },
+						{ "LF":  0, "LM":  0, "LB": -1, "RF":  2, "RM":  0, "RB":  0 },
+						{ "LF":  0, "LM":  2, "LB":  0, "RF": -1, "RM":  0, "RB":  0 },
+						{ "LF":  0, "LM": -1, "LB":  0, "RF":  0, "RM":  0, "RB":  2 },
+						{ "LF":  2, "LM":  0, "LB":  0, "RF":  0, "RM":  0, "RB": -1 },
+						{ "LF": -1, "LM":  0, "LB":  0, "RF":  0, "RM":  2, "RB":  0 }
+					]
+				}, 
 				
-				type: "RIPPLE",	// balance between stable (4 legs on the ground) and speed (not so slow as wave 1 by 1, bu not so fast as with tripod)
-				gaitZ: 20,	// This is only for 2D model, in real life Z should be calculate by creating 3D surface around robot (sounds cool).
-				deltaStep: 3,
-				speed: 200,
-				smooth: 10,
-				angspeed: 10,
-				sequence: [
-					{ "LF":  0, "LM":  0, "LB":  2, "RF":  0, "RM": -1, "RB":  0 },	// 0  - on the ground (stance), 
-					{ "LF":  0, "LM":  0, "LB": -1, "RF":  2, "RM":  0, "RB":  0 }, // >0 - in the air (swing) number of steps before ground,
-					{ "LF":  0, "LM":  2, "LB":  0, "RF": -1, "RM":  0, "RB":  0 }, // -1 - on the way to the ground (any step after), probably just ignore
-					{ "LF":  0, "LM": -1, "LB":  0, "RF":  0, "RM":  0, "RB":  2 },
-					{ "LF":  2, "LM":  0, "LB":  0, "RF":  0, "RM":  0, "RB": -1 },
-					{ "LF": -1, "LM":  0, "LB":  0, "RF":  0, "RM":  2, "RB":  0 },
-					{ "LF":  0, "LM":  0, "LB":  2, "RF":  0, "RM": -1, "RB":  0 },
-					{ "LF":  0, "LM":  0, "LB": -1, "RF":  2, "RM":  0, "RB":  0 },
-					{ "LF":  0, "LM":  2, "LB":  0, "RF": -1, "RM":  0, "RB":  0 },
-					{ "LF":  0, "LM": -1, "LB":  0, "RF":  0, "RM":  0, "RB":  2 },
-					{ "LF":  2, "LM":  0, "LB":  0, "RF":  0, "RM":  0, "RB": -1 },
-					{ "LF": -1, "LM":  0, "LB":  0, "RF":  0, "RM":  2, "RB":  0 }
-				]
-				
-				/*
-				type: "TRIPOD",	// speed
-				gaitZ: 20,	// This is only for 2D model, in real life Z should be calculate by creating 3D surface around robot (sounds cool).
-				deltaStep: 1.5,
-				speed: 100,
-				smooth: 15,
-				angspeed: 3,
-				sequence: [
-					{ "LF":  1, "LM":  0, "LB":  1, "RF":  0, "RM":  1, "RB":  0 },	// 0  - on the ground (stance), 
-					{ "LF":  0, "LM":  1, "LB":  0, "RF":  1, "RM":  0, "RB":  1 } // -1 - on the way to the ground (any step after), probably just ignore
-				]
-				*/
+				1: {
+					type: "TRIPOD",	// speed
+					gaitZ: 20,	// This is only for 2D model, in real life Z should be calculate by creating 3D surface around robot (sounds cool).
+					deltaStep: 1.5,
+					speed: 100,
+					smooth: 15,
+					angspeed: 2,
+					sequence: [
+						{ "LF":  1, "LM":  0, "LB":  1, "RF":  0, "RM":  1, "RB":  0 },	// 0  - on the ground (stance), 
+						{ "LF":  0, "LM":  1, "LB":  0, "RF":  1, "RM":  0, "RB":  1 } // -1 - on the way to the ground (any step after), probably just ignore
+					]
+				}
 			}
 		}
 	},
