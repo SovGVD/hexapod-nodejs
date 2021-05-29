@@ -17,6 +17,6 @@
     "gamepad": "^1.6.0",
     "point-in-polygon": "^1.0.1",
     "serialport": "^7.1.5",
-    "ws": "^7.1.1"
+    "ws": "^7.4.6"
   }
 }
